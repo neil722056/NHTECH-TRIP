@@ -33,20 +33,13 @@
     .success { text-align: center; padding: 40px 20px; }
     .success h3 { font-size: 22px; color: #06C755; margin: 0 0 8px; }
     .success p { margin: 8px 0; color: #666; }
-    .event-badge {
-      display: inline-block; background: #e8f9ee; color: #06C755;
-      font-size: 13px; font-weight: 600; padding: 4px 10px;
-      border-radius: 20px; margin-bottom: 16px;
-    }
   </style>
 </head>
 <body>
-  <h2>活動報名</h2>
+  <h2 id="pageTitle">活動報名</h2>
   <p id="status">請填寫以下資訊</p>
 
   <div class="card" id="formCard">
-    <div class="event-badge" id="eventBadge"></div>
-
     <label>
       <span>姓名 *</span>
       <input id="name" type="text" placeholder="請輸入姓名">
@@ -83,15 +76,15 @@
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbx60XA3f0Fuow6QzPDOWVbc2XhcOOjmTlRTZjQ6VE22Gjlz4YHe0XWOcsSBRr7Rj0PAHw/exec';
 
-    // 讀取活動名稱
     const EVENT_MAP = {
-      'chiangmai': '泰國清邁古城',
-      'cingjing': '清境農場'
+      'chiangmai': '泰國清邁古城5日遊',
+      'cingjing': '清境農場3日遊'
     };
+
     const params = new URLSearchParams(window.location.search);
     const eventKey = params.get('event') || '';
     const eventName = EVENT_MAP[eventKey] || '活動報名';
-    document.getElementById('eventBadge').textContent = eventName;
+    document.getElementById('pageTitle').textContent = eventName + ' - 活動報名';
 
     function clearErrors() {
       document.getElementById('nameError').textContent = '';

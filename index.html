@@ -1,1 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px 16px; background: #f5f5f5; }
+    h2 { font-size: 20px; margin-bottom: 4px; }
+    #status { font-size: 13px; color: #666; margin-bottom: 20px; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    label { display: block; margin-bottom: 16px; }
+    label span { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
+    input, textarea, select {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #ddd; border-radius: 8px;
+      font-size: 15px; background: #fafafa;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none; border-color: #06C755; background: #fff;
+    }
+    input.error, select.error {
+      border-color: #e00;
+      background: #fff5f5;
+    }
+    .error-msg { font-size: 12px; color: #e00; margin-top: 4px; }
+    textarea { resize: none; }
+    button {
+      width: 100%; padding: 14px;
+      background: #06C755; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 16px; font-weight: 600;
+      cursor: pointer; margin-top: 8px;
+    }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    .success { text-align: center; padding: 40px 20px; }
+    .success h3 { font-size: 22px; color: #06C755; margin: 0 0 8px; }
+    .success p { margin: 8px 0; color: #666; }
+  </style>
+</head>
+<body>
+  <h2>活動報名</h2>
+  <p id="status">請填寫以下資訊</p>
 
+  <div class="card" id="formCard">
+    <label>
+      <span>姓名 *</span>
+      <input id="name" type="text" placeholder="請輸入姓名">
+      <div id="nameError" class="error-msg"></div>
+    </label>
+
+    <label>
+      <span>電話 *</span>
+      <input id="phone" type="tel" placeholder="請輸入電話號碼">
+      <div id="phoneError" class="error-msg"></div>
+    </label>
+
+    <label>
+      <span>人數 *</span>
+      <select id="people">
+        <option value="">請選擇人數</option>
+        <option value="1">1 人</option>
+        <option value="2">2 人</option>
+        <option value="3">3 人</option>
+        <option value="4">4 人</option>
+        <option value="5">5 人以上</option>
+      </select>
+      <div id="peopleError" class="error-msg"></div>
+    </label>
+
+    <label>
+      <span>備註</span>
+      <textarea id="note" rows="3" placeholder="其他說明（選填）"></textarea>
+    </label>
+
+    <button id="submitBtn" onclick="submitForm()">送出報名</button>
+  </div>
+
+  <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbx60XA3f0Fuow6QzPDOWVbc2XhcOOjmTlRTZjQ6VE22Gjlz4YHe0XWOcsSBRr7Rj0PAHw/exec';
+
+    // 清除錯誤提示
+    function clearErrors() {
+      document.getElementById('nameError').textContent = '';
+      document.getElementById('phoneError').textContent = '';
+      document.getElementById('peopleError').textContent = '';
+      document.getElementById('name').classList.remove('error');
+      document.getElementById('phone').classList.remove('error');
+      document.getElementById('people').classList.remove('error');
+    }
+
+    // 驗證函式
+    function validateForm() {
+      clearErrors();
+      let isValid = true;
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const people = document.getElementById('people').value;
+
+      // 驗證姓名（不能為空，不能只有空格，長度 2-50 字）
+      if (!name) {
+        document.getElementById('nameError').textContent = '請輸入姓名';
+        document.getElementById('name').classList.add('error');
+        isValid = false;
+      } else if (name.length < 2) {
+        document.getElementById('nameError').textContent = '姓名至少 2 個字';
+        document.getElementById('name').classList.add('error');
+        isValid = false;
+      } else if (name.length > 50) {
+        document.getElementById('nameError').textContent = '姓名最多 50 個字';
+        document.getElementById('name').classList.add('error');
+        isValid = false;
+      }
+
+      // 驗證電話（台灣格式：09xx-xxx-xxx 或 0912345678）
+      const phoneRegex = /^09\d{8,9}$/;
+      if (!phone) {
+        document.getElementById('phoneError').textContent = '請輸入電話號碼';
+        document.getElementById('phone').classList.add('error');
+        isValid = false;
+      } else if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+        document.getElementById('phoneError').textContent = '請輸入有效的台灣手機號碼（09 開頭）';
+        document.getElementById('phone').classList.add('error');
+        isValid = false;
+      }
+
+      // 驗證人數
+      if (!people) {
+        document.getElementById('peopleError').textContent = '請選擇人數';
+        document.getElementById('people').classList.add('error');
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    async function submitForm() {
+      // 先驗證
+      if (!validateForm()) {
+        return;
+      }
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const people = document.getElementById('people').value;
+      const note = document.getElementById('note').value.trim();
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '送出中...';
+
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            name, phone, people, note,
+            userId: '',
+            displayName: ''
+          })
+        });
+
+        // === 自訂成功訊息開始（可以改這裡）===
+        document.getElementById('formCard').innerHTML = `
+          <div class="success">
+            <h3>✅ 報名成功！</h3>
+            <p>${name}，感謝您的報名</p>
+            <p style="font-size: 12px; color: #888; margin-top: 16px;">我們已收到報名資料，會盡快與您聯繫</p>
+            <p></p><p></p><p></p>
+            <p style="font-size: 11px; color: #bbb;">請返回 LINE 或關閉此頁面</p>
+          </div>`;
+        // === 自訂成功訊息結束 ===
+        
+        document.getElementById('status').textContent = '';
+      } catch (err) {
+        alert('❌ 送出失敗，請稍後再試');
+        btn.disabled = false;
+        btn.textContent = '送出報名';
+      }
+    }
+
+    // 輸入時即時清除錯誤提示
+    document.getElementById('name').addEventListener('input', function() {
+      if (this.classList.contains('error')) {
+        document.getElementById('nameError').textContent = '';
+        this.classList.remove('error');
+      }
+    });
+
+    document.getElementById('phone').addEventListener('input', function() {
+      if (this.classList.contains('error')) {
+        document.getElementById('phoneError').textContent = '';
+        this.classList.remove('error');
+      }
+    });
+
+    document.getElementById('people').addEventListener('change', function() {
+      if (this.classList.contains('error')) {
+        document.getElementById('peopleError').textContent = '';
+        this.classList.remove('error');
+      }
+    });
+  </script>
+</body>
+</html>

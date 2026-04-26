@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CRM Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<h2>📊 CRM Dashboard</h2>
+
+<div id="users"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+
+<script>
+
+const tenant = new URLSearchParams(location.search).get("tenant");
+
+async function load() {
+
+  const data = await api.getUsers({ tenant });
+
+  let html = "";
+
+  data.users.forEach(u => {
+    html += `
+      <div class="user">
+        <b>${u.name || u.lineId}</b>
+        <div>score: ${u.score}</div>
+        <div>heat: ${u.heat}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById("users").innerHTML = html;
+}
+
+load();
+
+</script>
+
+</body>
+</html>

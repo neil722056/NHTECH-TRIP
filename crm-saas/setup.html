@@ -47,10 +47,10 @@
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
+const GAS_URL = "YOUR_GAS_WEB_APP_URL";
 
 /**************************************************
- * 🚀 STATE POLLING (CONTROL PLANE ONLY)
+ * 🚀 STATE LOOP (CONTROL PLANE ONLY)
  **************************************************/
 setInterval(fetchState, 1200);
 fetchState();
@@ -62,12 +62,12 @@ async function fetchState() {
   const s = data.state || {};
 
   /**************************************************
-   * 🧠 UI SYNC RULE (v8.4.1 CORE)
+   * 🧠 UI SYNC RULE
    **************************************************/
   bindUI(s);
 
   document.getElementById("title").innerText =
-    "CRM Setup (" + s.version + ")";
+    "CRM Setup (" + (s.version || "-") + ")";
 
   document.getElementById("crmId").innerText =
     s.crmId || "-";
@@ -75,7 +75,12 @@ async function fetchState() {
   renderSteps(s);
 
   /**************************************************
-   * 🚀 AUTO REDIRECT WHEN DONE
+   * 🔍 UI DRIFT DETECTOR
+   **************************************************/
+  detectUIDrift(s);
+
+  /**************************************************
+   * 🚀 AUTO REDIRECT
    **************************************************/
   if (s.status === "DONE") {
     setTimeout(() => {
@@ -85,7 +90,7 @@ async function fetchState() {
 }
 
 /**************************************************
- * 🧠 UI SYNC RULE
+ * 🧠 UI SYNC RULE (v8.4.1 CORE)
  **************************************************/
 function bindUI(state) {
 
@@ -100,7 +105,7 @@ function bindUI(state) {
 }
 
 /**************************************************
- * 📊 STEP RENDER
+ * 📊 INSTALL FLOW RENDER
  **************************************************/
 function renderSteps(s) {
 
@@ -130,6 +135,25 @@ function renderSteps(s) {
       </div>
     `;
   });
+}
+
+/**************************************************
+ * 🔍 UI DRIFT DETECTOR
+ **************************************************/
+function detectUIDrift(state) {
+
+  const uiVersion =
+    document.querySelector("[data-bind-version]")?.innerText || "";
+
+  if (uiVersion && !uiVersion.includes(state.version)) {
+
+    console.warn("⚠ UI DRIFT DETECTED", {
+      ui: uiVersion,
+      backend: state.version
+    });
+
+    document.body.style.border = "2px solid red";
+  }
 }
 
 </script>

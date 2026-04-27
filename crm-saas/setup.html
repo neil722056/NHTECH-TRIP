@@ -26,12 +26,6 @@
     .running { color: #fbbf24; }
     .done { color: #22c55e; }
     .idle { color: #6b7280; }
-
-    button {
-      padding: 8px 12px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
   </style>
 </head>
 
@@ -44,8 +38,6 @@
   <div>Status: <span data-bind-status>-</span></div>
   <div>Message: <span data-bind-msg>-</span></div>
   <div>CRM ID: <span id="crmId">-</span></div>
-
-  <button onclick="startInstall()">🚀 Start Install</button>
 </div>
 
 <div class="box">
@@ -58,12 +50,12 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 STATE LOOP
+ * 🚀 SMART AUTO ENGINE (v8.4.3)
  **************************************************/
-setInterval(fetchState, 1200);
-fetchState();
+setInterval(sync, 1200);
+sync();
 
-async function fetchState() {
+async function sync() {
 
   try {
 
@@ -72,6 +64,8 @@ async function fetchState() {
     const s = data.state || {};
 
     bindUI(s);
+    renderSteps(s);
+    detectUIDrift(s);
 
     document.getElementById("title").innerText =
       "CRM Setup (" + (s.version || "-") + ")";
@@ -79,12 +73,24 @@ async function fetchState() {
     document.getElementById("crmId").innerText =
       s.crmId || "-";
 
-    renderSteps(s);
+    /**************************************************
+     * 🚀 AUTO INSTALL ENGINE (CORE v8.4.3)
+     **************************************************/
 
-    detectUIDrift(s);
+    // 🔥 CASE 1: RESETTING → AUTO INSTALL
+    if (s.lifecycle === "RESETTING") {
+      await triggerInstall();
+      return;
+    }
+
+    // 🔥 CASE 2: IDLE + CRM EXISTS → AUTO INSTALL
+    if (s.status === "IDLE" && s.crmId) {
+      await triggerInstall();
+      return;
+    }
 
   } catch (e) {
-    console.warn("state fetch error", e);
+    console.warn("sync error", e);
   }
 }
 
@@ -104,7 +110,7 @@ function bindUI(state) {
 }
 
 /**************************************************
- * 📊 STEP RENDER
+ * 📊 INSTALL FLOW RENDER
  **************************************************/
 function renderSteps(s) {
 
@@ -137,19 +143,16 @@ function renderSteps(s) {
 }
 
 /**************************************************
- * 🚀 INSTALL TRIGGER (🔥 FIXED KEY MISSING PIECE)
+ * 🚀 AUTO INSTALL TRIGGER
  **************************************************/
-async function startInstall() {
+async function triggerInstall() {
+
+  console.log("🚀 AUTO INSTALL START");
 
   try {
-
-    const res = await fetch(GAS_URL + "?action=install");
-    const data = await res.json();
-
-    console.log("install started", data);
-
+    await fetch(GAS_URL + "?action=install");
   } catch (e) {
-    console.error("install failed", e);
+    console.warn("install trigger failed", e);
   }
 }
 
@@ -162,6 +165,7 @@ function detectUIDrift(state) {
     document.querySelector("[data-bind-version]")?.innerText || "";
 
   if (uiVersion && !uiVersion.includes(state.version)) {
+
     console.warn("⚠ UI DRIFT DETECTED", {
       ui: uiVersion,
       backend: state.version

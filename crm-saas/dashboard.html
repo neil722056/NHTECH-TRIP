@@ -2,80 +2,31 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>v8 Install Dashboard</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    .box { padding: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
-    .progress { height: 20px; background: #eee; }
-    .bar { height: 20px; width: 0%; background: green; }
-  </style>
+  <title>v8 Dashboard Pro</title>
 </head>
 
 <body>
 
-<h2>🚀 v8 Install Dashboard</h2>
+<h2>🚀 v8 CRM Dashboard</h2>
 
-<div class="box">
-  <button onclick="loadStatus()">🔄 Refresh Status</button>
-  <button onclick="restartInstall()">♻️ Reinstall</button>
+<div>
+  <button onclick="reinstall()">🔄 Reinstall</button>
+  <button onclick="resetSystem()">🧨 Reset</button>
 </div>
 
-<div class="box">
-  <div>CRM ID: <span id="crmId"></span></div>
-  <div>CRM URL: <a id="crmUrl" target="_blank"></a></div>
-  <div>Version: <span id="version"></span></div>
+<hr>
+
+<div>
+  <p>CRM ID: <span id="crmId">-</span></p>
+  <p>Version: <span id="version">-</span></p>
+  <a id="crmUrl" target="_blank">-</a>
 </div>
 
-<div class="box">
-  <h3>Progress</h3>
-  <div class="progress">
-    <div class="bar" id="bar"></div>
-  </div>
-  <div id="log"></div>
-</div>
+<hr>
 
-<script>
+<pre id="log">Loading...</pre>
 
-const GAS_URL = "YOUR_GAS_URL";
-
-async function loadStatus() {
-
-  const res = await fetch(GAS_URL + "?path=dashboard");
-  const data = await res.json();
-
-  document.getElementById("crmId").innerText = data.crmId;
-  document.getElementById("crmUrl").href = data.crmUrl;
-  document.getElementById("crmUrl").innerText = data.crmUrl;
-  document.getElementById("version").innerText = data.version;
-
-  document.getElementById("bar").style.width = "100%";
-  document.getElementById("log").innerHTML = "✅ System ready";
-}
-
-async function restartInstall() {
-
-  document.getElementById("log").innerHTML = "♻️ restarting...";
-
-  let res = await fetch(GAS_URL + "?path=install&step=create");
-  let data = await res.json();
-
-  document.getElementById("log").innerHTML += "<br>✔ create done";
-
-  const ssId = data.ssId;
-
-  await fetch(GAS_URL + "?path=install&step=tables&ssId=" + ssId);
-  document.getElementById("log").innerHTML += "<br>✔ tables done";
-
-  await fetch(GAS_URL + "?path=install&step=properties&ssId=" + ssId);
-  document.getElementById("log").innerHTML += "<br>✔ properties done";
-
-  document.getElementById("bar").style.width = "100%";
-  document.getElementById("log").innerHTML += "<br>🎉 install complete";
-}
-
-loadStatus();
-
-</script>
+<script src="dashboard.js"></script>
 
 </body>
 </html>

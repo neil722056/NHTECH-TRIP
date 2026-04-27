@@ -1,106 +1,72 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>v8 CRM Boot System</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-      background: #f6f7fb;
-    }
-
-    .box {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      width: 320px;
-      text-align: center;
-    }
-
-    .dot::after {
-      content: '';
-      animation: dots 1.5s infinite;
-    }
-
-    @keyframes dots {
-      0% { content: ''; }
-      33% { content: '.'; }
-      66% { content: '..'; }
-      100% { content: '...'; }
-    }
-
-    small {
-      color: gray;
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="box">
-  <h2>🚀 v8 CRM System</h2>
-
-  <p id="status">Loading<span class="dot"></span></p>
-
-  <small id="debug">connecting...</small>
-</div>
-
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
+const GAS_URL = "YOUR_GAS_URL";
+
+// =========================
+// ROUTER PRO ENGINE
+// =========================
+async function smartRoute(retry = 0) {
+
+  console.log("🧭 Router Pro start, retry:", retry);
+
+  try {
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    const res = await fetch(GAS_URL + "?path=state", {
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    const state = await res.json();
+
+    console.log("📦 STATE:", state);
+
+    // =========================
+    // ROUTE LOGIC CORE
+    // =========================
+    if (state.installed === true) {
+
+      console.log("➡️ route: dashboard");
+      window.location.href = "dashboard.html";
+      return;
+
+    } else {
+
+      console.log("➡️ route: setup");
+      window.location.href = "setup.html";
+      return;
+    }
+
+  } catch (err) {
+
+    console.warn("⚠️ router error:", err.message);
+
+    // =========================
+    // AUTO RETRY (最多2次)
+    // =========================
+    if (retry < 2) {
+
+      console.log("🔁 retry routing...");
+      setTimeout(() => smartRoute(retry + 1), 1000);
+      return;
+    }
+
+    // =========================
+    // FALLBACK SAFE MODE
+    // =========================
+    console.log("🧯 fallback → setup");
+    window.location.href = "setup.html";
+  }
+}
 
 // =========================
 // BOOT
 // =========================
-async function boot() {
-
-  const status = document.getElementById("status");
-  const debug = document.getElementById("debug");
-
-  try {
-
-    debug.innerText = "calling GAS...";
-
-    const res = await fetch(GAS_URL + "?path=state");
-    const state = await res.json();
-
-    console.log("STATE:", state);
-
-    debug.innerText = "state loaded";
-
-    // 🔥 自動跳轉
-    setTimeout(() => {
-
-      if (state.installed) {
-        window.location.href = "dashboard.html";
-      } else {
-        window.location.href = "setup.html";
-      }
-
-    }, 500);
-
-  } catch (err) {
-
-    status.innerText = "❌ Failed";
-    debug.innerText = err.message;
-
-    setTimeout(() => {
-      window.location.href = "setup.html";
-    }, 2000);
-  }
-}
-
-// 啟動
-boot();
+document.addEventListener("DOMContentLoaded", () => {
+  smartRoute();
+});
 
 </script>
-
-</body>
-</html>

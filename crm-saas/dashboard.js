@@ -1,21 +1,36 @@
-
+// =========================
+// CONFIG
+// =========================
 const GAS_URL = "https://script.google.com/macros/s/AKfycbymF5s_0BVe8_kqhsGJXAnY9icWcPSgYeDVylA8g_0O0CKQXTFC_yxYmTtQTVQTYqLd/exec";
 
-async function loadStatus() {
-  const res = await fetch(GAS_URL + "?path=state");
-  const data = await res.json();
+// =========================
+// INIT
+// =========================
+import { loadState } from "./modules/state.js";
+import { reinstall, resetSystem } from "./modules/install.js";
+import { log } from "./modules/log.js";
 
-  document.getElementById("crmId").innerText = data.crmId;
-  document.getElementById("crmUrl").href = data.crmUrl;
+window.reinstall = reinstall;
+window.resetSystem = resetSystem;
+
+// =========================
+// BOOT
+// =========================
+async function boot() {
+
+  log("🚀 dashboard booting...");
+
+  const state = await loadState();
+
+  document.getElementById("crmId").innerText = state.crmId || "-";
+  document.getElementById("version").innerText = state.version || "-";
+
+  if (state.crmUrl) {
+    document.getElementById("crmUrl").href = state.crmUrl;
+    document.getElementById("crmUrl").innerText = state.crmUrl;
+  }
+
+  log("✔ system loaded");
 }
 
-async function restartInstall() {
-
-  await fetch(GAS_URL + "?path=reset");
-
-  setTimeout(() => {
-    window.location.href = "setup.html";
-  }, 800);
-}
-
-window.onload = loadStatus;
+boot();

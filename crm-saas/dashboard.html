@@ -185,24 +185,12 @@ async function loadStatus() {
 // =========================
 async function reinstall() {
 
-  log("♻️ reinstall start");
-  setProgress(30);
+  console.log("♻️ reinstall start");
 
-  try {
+  await fetch(GAS_URL + "?path=reset");
 
-    await fetch(GAS_URL + "?path=reset");
-
-    setProgress(80);
-    log("✔ reset done");
-
-    setTimeout(() => {
-      window.location.href = "setup.html";
-    }, 800);
-
-  } catch (err) {
-
-    log("❌ reinstall failed: " + err.message);
-  }
+  // 🔥 回 router（不要直接跳 setup）
+  window.location.href = "index.html";
 }
 
 // =========================

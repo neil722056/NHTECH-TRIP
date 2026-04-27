@@ -1,200 +1,126 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<title>智慧里長 AI 管理系統 v8 安裝</title>
+<title>CRM v8 AI Installer</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0b1220;
-  color:#e2e8f0;
+body {
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
   display:flex;
   justify-content:center;
   align-items:center;
   height:100vh;
 }
 
-.box{
-  width:720px;
-  background:#0f172a;
+.box {
+  width:420px;
+  background:#111827;
+  padding:30px;
   border-radius:16px;
-  padding:20px;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
-h2{ color:#22c55e; margin:0 0 10px; }
+.title {
+  font-size:18px;
+  margin-bottom:20px;
+  color:#38bdf8;
+}
 
-.bar{
+.bar-bg {
   width:100%;
-  height:18px;
+  height:14px;
   background:#1f2937;
   border-radius:10px;
   overflow:hidden;
 }
 
-.progress{
+.bar {
   height:100%;
   width:0%;
-  background:#22c55e;
-  transition:width .4s;
+  background:linear-gradient(90deg,#22c55e,#38bdf8,#a78bfa);
+  transition:0.3s;
 }
 
-.status{
+.step {
+  margin-top:15px;
+  font-size:14px;
+  color:#cbd5e1;
+  min-height:20px;
+}
+
+.status {
   margin-top:10px;
+  font-size:12px;
   color:#94a3b8;
 }
-
-.log{
-  margin-top:15px;
-  background:#020617;
-  height:180px;
-  overflow:auto;
-  padding:10px;
-  border-radius:10px;
-  font-size:12px;
-}
-
-button{
-  margin-top:15px;
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:#3b82f6;
-  color:white;
-  cursor:pointer;
-}
-
-.ok{color:#22c55e;}
-.err{color:#ef4444;}
-.run{color:#facc15;}
 </style>
 </head>
 
 <body>
 
 <div class="box">
+  <div class="title">🚀 CRM v8 AI 安裝器</div>
 
-  <h2>🚀 智慧里長 AI CRM 安裝系統</h2>
-
-  <div class="bar">
-    <div class="progress" id="bar"></div>
+  <div class="bar-bg">
+    <div id="bar" class="bar"></div>
   </div>
 
-  <div class="status" id="status">等待開始安裝...</div>
-
-  <button onclick="startInstall()">🚀 一鍵安裝</button>
-
-  <div class="log" id="log"></div>
-
+  <div id="step" class="step">準備啟動 AI 安裝系統...</div>
+  <div id="status" class="status">初始化中</div>
 </div>
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec";
-
-let installing = false;
-
 const steps = [
-  "初始化 SaaS 環境...",
-  "建立 CRM 資料庫...",
-  "建立資料表...",
-  "寫入系統設定...",
-  "完成部署..."
+  {text:"連線 Google Apps Script API...", p:10},
+  {text:"建立 crm_users 表...", p:25},
+  {text:"建立 crm_log 表...", p:40},
+  {text:"部署 AI scoring engine...", p:60},
+  {text:"初始化 LINE Webhook...", p:75},
+  {text:"載入 sales AI 模型...", p:90},
+  {text:"完成系統整合...", p:100}
 ];
 
-function log(msg, cls=""){
-  const el = document.getElementById("log");
-  el.innerHTML += `<div class="${cls}">${msg}</div>`;
-  el.scrollTop = el.scrollHeight;
+let i = 0;
+let progress = 0;
+
+function updateUI(p, text){
+  document.getElementById("bar").style.width = p + "%";
+  document.getElementById("step").innerText = text;
 }
 
-function setStatus(msg){
-  document.getElementById("status").innerText = msg;
-}
+function fakeInstall(){
+  let interval = setInterval(() => {
 
-function setBar(val){
-  document.getElementById("bar").style.width = val + "%";
-}
+    if(i < steps.length){
+      let target = steps[i].p;
 
-function startInstall(){
-
-  if (installing) return;
-  installing = true;
-
-  let progress = 0;
-  let step = 0;
-
-  document.getElementById("log").innerHTML = "";
-  setStatus("🚀 開始安裝...");
-  log("🚀 install started","run");
-
-  // 🧠 UI 模擬進度
-  const interval = setInterval(()=>{
-    if(step < steps.length){
-      progress += 15;
-      setBar(progress);
-      setStatus("⏳ " + steps[step]);
-      log("➡️ " + steps[step]);
-      step++;
-    }
-  }, 600);
-
-  // 🚀 真實 API 呼叫
-  fetch(GAS_URL, {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      action:"install",
-      tenant:"crm_" + Date.now()
-    })
-  })
-  .then(res => res.text())   // 🔥 先 text（避免 JSON 爆）
-  .then(txt => {
-
-    let data;
-
-    try {
-      data = JSON.parse(txt);
-    } catch(e){
-      throw new Error("非 JSON 回應：" + txt.substring(0,100));
-    }
-
-    clearInterval(interval);
-    installing = false;
-
-    if(data.success){
-
-      setBar(100);
-      setStatus("🎉 安裝完成！");
-      log("✅ 安裝成功","ok");
-      log("📦 Sheet ID: " + data.sheet_id,"ok");
-      log(`🔗 <a href="${data.crm_url}" target="_blank">開啟 CRM</a>`,"ok");
+      if(progress < target){
+        progress += Math.random() * 6;
+        updateUI(progress, steps[i].text);
+      } else {
+        i++;
+      }
 
     } else {
+      clearInterval(interval);
 
-      setStatus("❌ 安裝失敗");
-      log("ERROR: " + JSON.stringify(data),"err");
+      updateUI(100, "🎉 CRM v8 安裝完成！");
+      document.getElementById("status").innerText = "正在導向系統...";
 
+      setTimeout(() => {
+        // 👉 改成你的 CRM URL
+        window.location.href = "https://YOUR-CRM-URL";
+      }, 1200);
     }
 
-  })
-  .catch(err => {
-
-    clearInterval(interval);
-    installing = false;
-
-    setStatus("❌ 連線錯誤");
-    log("ERROR: " + err.message,"err");
-
-  });
-
+  }, 200);
 }
+
+fakeInstall();
 
 </script>
 

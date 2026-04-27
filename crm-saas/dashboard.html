@@ -45,11 +45,11 @@
 <div class="box">
   <div class="title">CRM Dashboard</div>
 
-  <div class="row" id="version">Version: -</div>
-  <div class="row" id="crmId">CRM ID: -</div>
-  <div class="row" id="step">STEP: -</div>
-  <div class="row" id="msg">MSG: -</div>
-  <div class="row" id="status">STATUS: -</div>
+  <div class="row">Version: <span data-bind-version>-</span></div>
+  <div class="row">CRM ID: <span id="crmId">-</span></div>
+  <div class="row">STEP: <span data-bind-step>-</span></div>
+  <div class="row">MSG: <span data-bind-msg>-</span></div>
+  <div class="row">STATUS: <span data-bind-status>-</span></div>
 </div>
 
 <div class="box">
@@ -78,48 +78,61 @@ async function loadState() {
   const s = data.state || {};
 
   /**************************************************
-   * 🧠 CONTROL PLANE BINDING
+   * 🧠 UI SYNC RULE
    **************************************************/
-  document.getElementById("version").innerText =
-    "Version: " + (s.version || "-");
+  bindUI(s);
 
   document.getElementById("crmId").innerText =
-    "CRM ID: " + (s.crmId || "-");
+    s.crmId || "-";
 
-  document.getElementById("step").innerText =
-    "STEP: " + (s.step || "-");
+  renderHealth(s);
+}
 
-  document.getElementById("msg").innerText =
-    "MSG: " + (s.msg || "-");
+/**************************************************
+ * 🧠 UI SYNC RULE (v8.4.1 CORE)
+ **************************************************/
+function bindUI(state) {
 
-  document.getElementById("status").innerText =
-    "STATUS: " + (s.status || "-");
+  document.querySelectorAll("[data-bind-version]")
+    .forEach(el => el.innerText = state.version || "-");
 
-  /**************************************************
-   * 🧠 HEALTH INDICATOR
-   **************************************************/
-  const health = document.getElementById("health");
+  document.querySelectorAll("[data-bind-step]")
+    .forEach(el => el.innerText = state.step || "-");
+
+  document.querySelectorAll("[data-bind-msg]")
+    .forEach(el => el.innerText = state.msg || "-");
+
+  document.querySelectorAll("[data-bind-status]")
+    .forEach(el => el.innerText = state.status || "-");
+}
+
+/**************************************************
+ * 🧠 HEALTH VIEW
+ **************************************************/
+function renderHealth(s) {
+
+  const el = document.getElementById("health");
 
   if (s.status === "DONE") {
-    health.innerHTML = "System: <span class='ok'>READY</span>";
+    el.innerHTML = "System: <span class='ok'>READY</span>";
   } else if (s.status === "RUNNING") {
-    health.innerHTML = "System: <span class='warn'>RUNNING</span>";
+    el.innerHTML = "System: <span class='warn'>RUNNING</span>";
   } else if (s.status === "ERROR") {
-    health.innerHTML = "System: <span class='bad'>ERROR</span>";
+    el.innerHTML = "System: <span class='bad'>ERROR</span>";
   } else {
-    health.innerHTML = "System: <span class='warn'>IDLE</span>";
+    el.innerHTML = "System: <span class='warn'>IDLE</span>";
   }
 }
 
 /**************************************************
- * 🔁 RESET (CONTROL PLANE ROUTER)
+ * 🔁 RESET
  **************************************************/
 async function reset() {
   await fetch(GAS_URL + "?action=reset");
 }
 
 /**************************************************
- * 🚀 REINSTALL (ALIAS → RESET)
+ * 🚀 REINSTALL
  **************************************************/
 async function reinstall() {
   await fetch(GAS_URL + "?action=reset");

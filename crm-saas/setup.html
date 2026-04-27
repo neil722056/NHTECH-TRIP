@@ -1,83 +1,84 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🚀 CRM SaaS Setup 安裝系統</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <style>
-    body{
-      margin:0;
-      font-family:Arial;
-      background:#0b1220;
-      color:#e2e8f0;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-    }
+<title>智慧里長 AI 管理系統 v8 安裝</title>
 
-    .box{
-      width:720px;
-      background:#0f172a;
-      border-radius:16px;
-      padding:20px;
-      box-shadow:0 20px 60px rgba(0,0,0,.6);
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0b1220;
+  color:#e2e8f0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
 
-    h2{color:#22c55e;margin-top:0;}
+.box{
+  width:720px;
+  background:#0f172a;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
 
-    .bar{
-      width:100%;
-      height:18px;
-      background:#1f2937;
-      border-radius:10px;
-      overflow:hidden;
-      margin-top:12px;
-    }
+h2{ color:#22c55e; margin:0 0 10px; }
 
-    .progress{
-      height:100%;
-      width:0%;
-      background:#22c55e;
-      transition:width .3s;
-    }
+.bar{
+  width:100%;
+  height:18px;
+  background:#1f2937;
+  border-radius:10px;
+  overflow:hidden;
+}
 
-    .status{
-      margin-top:10px;
-      font-size:14px;
-      color:#94a3b8;
-      min-height:20px;
-    }
+.progress{
+  height:100%;
+  width:0%;
+  background:#22c55e;
+  transition:width .4s;
+}
 
-    .log{
-      margin-top:15px;
-      background:#0b1220;
-      padding:10px;
-      border-radius:10px;
-      height:180px;
-      overflow:auto;
-      font-size:12px;
-      color:#cbd5e1;
-    }
+.status{
+  margin-top:10px;
+  color:#94a3b8;
+}
 
-    button{
-      margin-top:15px;
-      padding:10px;
-      border:none;
-      border-radius:10px;
-      background:#3b82f6;
-      color:white;
-      cursor:pointer;
-    }
+.log{
+  margin-top:15px;
+  background:#020617;
+  height:180px;
+  overflow:auto;
+  padding:10px;
+  border-radius:10px;
+  font-size:12px;
+}
 
-  </style>
+button{
+  margin-top:15px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#3b82f6;
+  color:white;
+  cursor:pointer;
+}
+
+.ok{color:#22c55e;}
+.err{color:#ef4444;}
+.run{color:#facc15;}
+</style>
 </head>
 
 <body>
 
 <div class="box">
-  <h2>🚀 CRM SaaS 一鍵安裝系統</h2>
+
+  <h2>🚀 智慧里長 AI CRM 安裝系統</h2>
 
   <div class="bar">
     <div class="progress" id="bar"></div>
@@ -85,21 +86,29 @@
 
   <div class="status" id="status">等待開始安裝...</div>
 
-  <button onclick="startInstall()">🚀 start install</button>
+  <button onclick="startInstall()">🚀 一鍵安裝</button>
 
   <div class="log" id="log"></div>
+
 </div>
 
 <script>
 
-let installing = false;
-let progress = 0;
-
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec";
 
-function log(msg){
+let installing = false;
+
+const steps = [
+  "初始化 SaaS 環境...",
+  "建立 CRM 資料庫...",
+  "建立資料表...",
+  "寫入系統設定...",
+  "完成部署..."
+];
+
+function log(msg, cls=""){
   const el = document.getElementById("log");
-  el.innerHTML += msg + "<br>";
+  el.innerHTML += `<div class="${cls}">${msg}</div>`;
   el.scrollTop = el.scrollHeight;
 }
 
@@ -111,87 +120,77 @@ function setBar(val){
   document.getElementById("bar").style.width = val + "%";
 }
 
-function startInstall() {
+function startInstall(){
 
   if (installing) return;
   installing = true;
 
-  progress = 0;
-  setBar(5);
-
-  setStatus("🚀 開始安裝...");
-  log("🚀 install started");
-
-  // 🧠 UI 模擬進度（安全）
+  let progress = 0;
   let step = 0;
-  const steps = [
-    "初始化 SaaS...",
-    "建立 CRM 資料庫...",
-    "部署 GAS...",
-    "設定 LINE webhook...",
-    "建立 AI engine...",
-    "完成準備..."
-  ];
 
-  let interval = setInterval(() => {
+  document.getElementById("log").innerHTML = "";
+  setStatus("🚀 開始安裝...");
+  log("🚀 install started","run");
 
-    if (step < steps.length) {
-      progress += 80 / steps.length;
+  // 🧠 UI 模擬進度
+  const interval = setInterval(()=>{
+    if(step < steps.length){
+      progress += 15;
       setBar(progress);
       setStatus("⏳ " + steps[step]);
       log("➡️ " + steps[step]);
       step++;
     }
+  }, 600);
 
-    if (step >= steps.length) clearInterval(interval);
-
-  }, 500);
-
-  // ⚙️ 真正 API
+  // 🚀 真實 API 呼叫
   fetch(GAS_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
     },
     body: JSON.stringify({
-      tenant: "crm_" + Date.now()
+      action:"install",
+      tenant:"crm_" + Date.now()
     })
   })
-  .then(r => r.text())   // 🔥 避免 JSON crash
-  .then(data => {
+  .then(res => res.text())   // 🔥 先 text（避免 JSON 爆）
+  .then(txt => {
 
-    installing = false;
-    clearInterval(interval);
-
-    console.log("RAW:", data);
+    let data;
 
     try {
-      const json = JSON.parse(data);
+      data = JSON.parse(txt);
+    } catch(e){
+      throw new Error("非 JSON 回應：" + txt.substring(0,100));
+    }
 
-      if (json.success) {
-        setBar(100);
-        setStatus("🎉 安裝完成！");
-        log("✅ CRM URL: " + json.crm_url);
-        log("📦 Sheet ID: " + json.sheet_id);
-      } else {
-        setStatus("❌ 安裝失敗");
-        log("ERROR: " + data);
-      }
+    clearInterval(interval);
+    installing = false;
 
-    } catch (e) {
-      setStatus("❌ 回傳格式錯誤（不是 JSON）");
-      log("RAW RESPONSE:");
-      log(data);
+    if(data.success){
+
+      setBar(100);
+      setStatus("🎉 安裝完成！");
+      log("✅ 安裝成功","ok");
+      log("📦 Sheet ID: " + data.sheet_id,"ok");
+      log(`🔗 <a href="${data.crm_url}" target="_blank">開啟 CRM</a>`,"ok");
+
+    } else {
+
+      setStatus("❌ 安裝失敗");
+      log("ERROR: " + JSON.stringify(data),"err");
+
     }
 
   })
   .catch(err => {
 
-    installing = false;
     clearInterval(interval);
+    installing = false;
 
     setStatus("❌ 連線錯誤");
-    log(err.toString());
+    log("ERROR: " + err.message,"err");
 
   });
 

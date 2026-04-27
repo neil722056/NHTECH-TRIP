@@ -2,21 +2,21 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>CRM Setup v8.3.2</title>
+  <title>CRM Setup v8.3.3</title>
 
   <style>
     body {
       font-family: Arial;
-      padding: 20px;
       background: #0f172a;
       color: white;
+      padding: 20px;
     }
 
     .box {
       background: #111827;
       padding: 16px;
       border-radius: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .step {
@@ -25,50 +25,36 @@
 
     .running { color: #fbbf24; }
     .done { color: #22c55e; }
-    .wait { color: #6b7280; }
-
-    button {
-      padding: 8px 12px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
+    .idle { color: #6b7280; }
   </style>
 </head>
 
 <body>
 
-  <div class="box">
-    <h2>CRM Install Setup (v8.3.2)</h2>
+<div class="box">
+  <h2>CRM Setup (v8.3.3 AUTO BOOT)</h2>
 
-    <div id="status">Status: loading...</div>
-    <div id="msg"></div>
-    <div id="version"></div>
-    <div id="crmId"></div>
-  </div>
+  <div id="status">Loading...</div>
+  <div id="msg"></div>
+  <div id="version"></div>
+  <div id="crmId"></div>
+</div>
 
-  <div class="box">
-    <h3>Install Flow</h3>
-
-    <div id="steps"></div>
-  </div>
-
-  <button onclick="resetSystem()">RESET</button>
+<div class="box">
+  <h3>Install Flow</h3>
+  <div id="steps"></div>
+</div>
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec"; // ← 改這裡
-
-let installing = false;
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 STATE POLLING LOOP
+ * 🚀 STATE POLLING (DISPLAY ONLY)
  **************************************************/
 setInterval(fetchState, 1200);
 fetchState();
 
-/**************************************************
- * 🧠 FETCH STATE + SMART BOOT
- **************************************************/
 async function fetchState() {
 
   const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
@@ -90,75 +76,43 @@ async function fetchState() {
   renderSteps(state);
 
   /**************************************************
-   * 🚀 v8.3.2 SMART BOOT ENGINE
+   * 🚀 AUTO REDIRECT (AFTER INSTALL DONE)
    **************************************************/
-  const bootRes = await fetch(GAS_URL + "?action=bootCheck&t=" + Date.now());
-  const boot = await bootRes.json();
-
-  if (boot.needInstall && !installing) {
-    startInstall();
-  }
-
   if (state.status === "DONE") {
-    window.location.href = "dashboard.html";
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 800);
   }
 }
 
 /**************************************************
- * 🚀 INSTALL TRIGGER
- **************************************************/
-async function startInstall() {
-
-  installing = true;
-
-  document.getElementById("msg").innerText = "Installing...";
-
-  const res = await fetch(GAS_URL + "?action=install");
-  const data = await res.json();
-
-  console.log("INSTALL RESULT:", data);
-
-  installing = false;
-}
-
-/**************************************************
- * 🔁 RESET
- **************************************************/
-async function resetSystem() {
-
-  await fetch(GAS_URL + "?action=reset");
-
-  document.getElementById("msg").innerText = "Reset done, waiting boot...";
-}
-
-/**************************************************
- * 📊 RENDER STEPS
+ * 📊 VISUAL STEP RENDERER
  **************************************************/
 function renderSteps(state) {
 
   const container = document.getElementById("steps");
 
   const steps = [
-    { id: 1, name: "CHECK PERMISSION" },
-    { id: 2, name: "CREATE SPREADSHEET" },
-    { id: 3, name: "CREATE TABLES" },
-    { id: 4, name: "WRITE CONFIG" },
-    { id: 5, name: "API READY" },
-    { id: 6, name: "FINALIZE" }
+    "CHECK PERMISSION",
+    "CREATE SPREADSHEET",
+    "CREATE TABLES",
+    "WRITE CONFIG",
+    "API READY",
+    "FINALIZE"
   ];
 
   container.innerHTML = "";
 
-  steps.forEach(s => {
+  steps.forEach((name, i) => {
 
-    let cls = "wait";
+    let cls = "idle";
 
-    if (state.step == s.id) cls = "running";
-    if (state.step > s.id) cls = "done";
+    if (state.step == i + 1) cls = "running";
+    if (state.step > i + 1) cls = "done";
 
     container.innerHTML += `
       <div class="step ${cls}">
-        ${s.id}. ${s.name}
+        ${i + 1}. ${name}
       </div>
     `;
   });

@@ -6,23 +6,28 @@
 
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       background: #0f172a;
       color: white;
-      padding: 20px;
+      padding: 24px;
     }
 
     h2 {
       margin-bottom: 20px;
     }
 
+    .container {
+      max-width: 520px;
+    }
+
     .node {
-      padding: 12px;
+      padding: 12px 14px;
       margin: 8px 0;
       border-radius: 10px;
       display: flex;
       justify-content: space-between;
       transition: 0.3s;
+      font-size: 14px;
     }
 
     .done {
@@ -41,37 +46,43 @@
       background: #ef4444;
     }
 
-    .container {
-      max-width: 500px;
+    .statusBox {
+      margin-top: 20px;
+      padding: 12px;
+      background: #1e293b;
+      border-radius: 10px;
+      font-size: 13px;
     }
 
     .title {
-      font-size: 18px;
       margin-bottom: 10px;
-    }
-
-    .statusBox {
-      margin-top: 20px;
-      padding: 10px;
-      background: #1e293b;
-      border-radius: 8px;
-      font-size: 13px;
+      color: #93c5fd;
     }
   </style>
 </head>
 
 <body>
 
-<h2>🚀 CRM Install (v8.1.4 Visual Engine)</h2>
+<h2>🚀 CRM Install Setup (v8.1.4 Visual Engine)</h2>
 
-<div class="container" id="flow"></div>
+<div class="container">
 
-<div class="statusBox" id="status">Waiting...</div>
+  <div id="flow"></div>
+
+  <div class="statusBox">
+    <div class="title">System Status</div>
+    <div id="status">Waiting...</div>
+  </div>
+
+</div>
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec"; // 🔥 改成你的
 
+/***********************
+ * 🧠 INSTALL FLOW NODES
+ ***********************/
 const nodes = [
   "CHECK PERMISSION",
   "CREATE SPREADSHEET",
@@ -81,8 +92,9 @@ const nodes = [
   "FINALIZE"
 ];
 
-let lastState = {};
-
+/***********************
+ * 🎨 RENDER FLOW (Figma-like UI)
+ ***********************/
 function renderFlow(state) {
 
   const flow = document.getElementById("flow");
@@ -92,40 +104,55 @@ function renderFlow(state) {
 
     let className = "node wait";
 
-    if (state.step > i) className = "node done";
-    if (state.step == i) className = "node running";
-
-    if (state.status === "ERROR") className = "node error";
+    if (state.status === "ERROR") {
+      className = "node error";
+    } else if (state.step > i) {
+      className = "node done";
+    } else if (state.step == i) {
+      className = "node running";
+    }
 
     const div = document.createElement("div");
     div.className = className;
 
     div.innerHTML = `
       <span>${i + 1}. ${n}</span>
-      <span>${className.split(" ")[1]}</span>
+      <span>${className.replace("node ", "")}</span>
     `;
 
     flow.appendChild(div);
   });
 }
 
+/***********************
+ * 📡 FETCH STATE
+ ***********************/
 async function fetchState() {
 
   try {
 
-    const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
+    const res = await fetch(
+      GAS_URL + "?action=state&t=" + Date.now()
+    );
+
     const data = await res.json();
+    const state = data.state || {};
 
-    const state = data.state;
+    console.log("STATE:", state);
 
+    /***********************
+     * UI STATUS
+     ***********************/
     document.getElementById("status").innerText =
-      "Status: " + state.status + " | Step: " + state.step;
+      "Status: " + state.status +
+      " | Step: " + state.step +
+      " | Msg: " + (state.msg || "");
 
     renderFlow(state);
 
-    lastState = state;
-
-    // 🚀 AUTO REDIRECT
+    /***********************
+     * 🚀 AUTO REDIRECT
+     ***********************/
     if (state.status === "DONE") {
       window.location.href = "dashboard.html";
     }
@@ -133,14 +160,20 @@ async function fetchState() {
   } catch (err) {
 
     document.getElementById("status").innerText =
-      "ERROR: " + err.message;
+      "Error: " + err.message;
 
+    console.error("BOOT ERROR:", err);
   }
 }
 
-// 🔁 polling (real-time flow)
+/***********************
+ * 🔁 LIVE POLLING (REAL-TIME FLOW)
+ ***********************/
 setInterval(fetchState, 1000);
 
+/***********************
+ * 🚀 INIT
+ ***********************/
 fetchState();
 
 </script>

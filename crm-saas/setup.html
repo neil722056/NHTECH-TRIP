@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>CRM Setup v8.3.3</title>
+  <title>CRM Setup</title>
 
   <style>
     body {
@@ -32,7 +32,7 @@
 <body>
 
 <div class="box">
-  <h2>CRM Setup (v8.3.3 AUTO BOOT)</h2>
+  <h2 id="title">CRM Setup</h2>
 
   <div id="status">Loading...</div>
   <div id="msg"></div>
@@ -50,7 +50,7 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 STATE POLLING (DISPLAY ONLY)
+ * 🚀 STATE LOOP (CONTROL PLANE ONLY)
  **************************************************/
 setInterval(fetchState, 1200);
 fetchState();
@@ -59,26 +59,32 @@ async function fetchState() {
 
   const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
   const data = await res.json();
-  const state = data.state || {};
-
-  document.getElementById("status").innerText =
-    "Status: " + (state.status || "");
-
-  document.getElementById("msg").innerText =
-    state.msg || "";
-
-  document.getElementById("version").innerText =
-    "Version: " + (state.version || "");
-
-  document.getElementById("crmId").innerText =
-    "CRM ID: " + (state.crmId || "");
-
-  renderSteps(state);
+  const s = data.state || {};
 
   /**************************************************
-   * 🚀 AUTO REDIRECT (AFTER INSTALL DONE)
+   * 🧠 CONTROL PLANE BINDING
    **************************************************/
-  if (state.status === "DONE") {
+  document.getElementById("title").innerText =
+    "CRM Setup (" + (s.version || "v8.4.0") + ")";
+
+  document.getElementById("status").innerText =
+    "Status: " + (s.status || "-");
+
+  document.getElementById("msg").innerText =
+    s.msg || "-";
+
+  document.getElementById("version").innerText =
+    "Version: " + (s.version || "-");
+
+  document.getElementById("crmId").innerText =
+    "CRM ID: " + (s.crmId || "-");
+
+  renderSteps(s);
+
+  /**************************************************
+   * 🚀 AUTO REDIRECT (DONE STATE)
+   **************************************************/
+  if (s.status === "DONE") {
     setTimeout(() => {
       window.location.href = "dashboard.html";
     }, 800);
@@ -86,9 +92,9 @@ async function fetchState() {
 }
 
 /**************************************************
- * 📊 VISUAL STEP RENDERER
+ * 📊 STEP RENDER
  **************************************************/
-function renderSteps(state) {
+function renderSteps(s) {
 
   const container = document.getElementById("steps");
 
@@ -107,8 +113,8 @@ function renderSteps(state) {
 
     let cls = "idle";
 
-    if (state.step == i + 1) cls = "running";
-    if (state.step > i + 1) cls = "done";
+    if (s.step == i + 1) cls = "running";
+    if (s.step > i + 1) cls = "done";
 
     container.innerHTML += `
       <div class="step ${cls}">

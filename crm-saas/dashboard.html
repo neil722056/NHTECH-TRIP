@@ -1,231 +1,126 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>v8 CRM Dashboard Pro</title>
+  <meta charset="UTF-8" />
+  <title>CRM Dashboard v8.3.3</title>
 
   <style>
     body {
       font-family: Arial;
-      background: #f4f6f9;
+      background: #0b1220;
+      color: white;
       padding: 20px;
     }
 
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    .box {
+      background: #111827;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 12px;
     }
 
-    .ok { color: green; }
-    .fail { color: red; }
+    .title {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .row {
+      margin: 6px 0;
+    }
 
     button {
       padding: 8px 12px;
-      border: none;
-      border-radius: 6px;
+      margin-right: 8px;
       cursor: pointer;
-      margin-right: 5px;
     }
 
-    .blue { background: #3498db; color: white; }
-    .red { background: #e74c3c; color: white; }
-
-    .bar {
-      width: 100%;
-      height: 10px;
-      background: #eee;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .bar-inner {
-      height: 100%;
-      width: 0%;
-      background: #2ecc71;
-      transition: 0.3s;
-    }
-
-    pre {
-      background: #111;
-      color: #0f0;
-      padding: 10px;
-      height: 200px;
-      overflow: auto;
-      border-radius: 6px;
-    }
+    .ok { color: #22c55e; }
+    .warn { color: #fbbf24; }
+    .bad { color: #ef4444; }
   </style>
 </head>
 
 <body>
 
-<h2>🚀 v8 CRM Dashboard Pro</h2>
+<div class="box">
+  <div class="title">CRM Dashboard</div>
 
-<!-- ========================= -->
-<!-- SYSTEM STATUS -->
-<!-- ========================= -->
-<div class="card">
-  <h3>📊 System Status</h3>
-
-  <p>CRM ID: <span id="crmId">-</span></p>
-  <p>Version: <span id="version">-</span></p>
-  <p>API Status: <span id="apiStatus">Checking...</span></p>
-
-  <p>
-    CRM URL:
-    <a id="crmUrl" target="_blank">-</a>
-  </p>
+  <div class="row" id="version">Version: -</div>
+  <div class="row" id="crmId">CRM ID: -</div>
+  <div class="row" id="step">STEP: -</div>
+  <div class="row" id="msg">MSG: -</div>
+  <div class="row" id="status">STATUS: -</div>
 </div>
 
-<!-- ========================= -->
-<!-- PROGRESS -->
-<!-- ========================= -->
-<div class="card">
-  <h3>⚙️ System Activity</h3>
-
-  <div class="bar">
-    <div class="bar-inner" id="bar"></div>
-  </div>
-
-  <p id="activity">Idle</p>
+<div class="box">
+  <button onclick="reset()">RESET</button>
+  <button onclick="reinstall()">REINSTALL</button>
 </div>
 
-<!-- ========================= -->
-<!-- ACTION -->
-<!-- ========================= -->
-<div class="card">
-  <h3>🧠 Actions</h3>
-
-  <button class="blue" onclick="reinstall()">🔄 Reinstall</button>
-  <button class="red" onclick="resetSystem()">🧨 Reset</button>
-</div>
-
-<!-- ========================= -->
-<!-- LOG -->
-<!-- ========================= -->
-<div class="card">
-  <h3>🧾 Debug Log</h3>
-  <pre id="log">Booting...</pre>
+<div class="box">
+  <div id="health">System: checking...</div>
 </div>
 
 <script>
 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
-// =========================
-// LOG SYSTEM
-// =========================
-function log(msg) {
-  const el = document.getElementById("log");
-  el.innerText += "\n" + msg;
-  el.scrollTop = el.scrollHeight;
-  console.log(msg);
-}
+/**************************************************
+ * 🚀 LIVE STATE LOOP
+ **************************************************/
+setInterval(loadState, 1500);
+loadState();
 
-// =========================
-// PROGRESS BAR
-// =========================
-function setProgress(p) {
-  document.getElementById("bar").style.width = p + "%";
-}
+async function loadState() {
 
-// =========================
-// LOAD STATUS
-// =========================
-async function loadStatus() {
+  const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
+  const data = await res.json();
+  const s = data.state || {};
 
-  log("📡 checking system...");
+  document.getElementById("version").innerText =
+    "Version: " + (s.version || "-");
 
-  try {
+  document.getElementById("crmId").innerText =
+    "CRM ID: " + (s.crmId || "-");
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+  document.getElementById("step").innerText =
+    "STEP: " + (s.step || "-");
 
-    const res = await fetch(GAS_URL + "?path=state", {
-      signal: controller.signal
-    });
+  document.getElementById("msg").innerText =
+    "MSG: " + (s.msg || "-");
 
-    clearTimeout(timeout);
+  document.getElementById("status").innerText =
+    "STATUS: " + (s.status || "-");
 
-    const state = await res.json();
+  /**************************************************
+   * 🧠 HEALTH INDICATOR
+   **************************************************/
+  const health = document.getElementById("health");
 
-    document.getElementById("crmId").innerText = state.crmId || "-";
-    document.getElementById("version").innerText = state.version || "-";
-
-    document.getElementById("apiStatus").innerHTML =
-      '<span class="ok">✔ Online</span>';
-
-    if (state.crmUrl) {
-      document.getElementById("crmUrl").href = state.crmUrl;
-      document.getElementById("crmUrl").innerText = "Open CRM";
-    }
-
-    setProgress(100);
-    document.getElementById("activity").innerText = "System Ready";
-
-    log("✔ system healthy");
-
-  } catch (err) {
-
-    document.getElementById("apiStatus").innerHTML =
-      '<span class="fail">❌ Offline</span>';
-
-    document.getElementById("activity").innerText = "API Error";
-
-    setProgress(10);
-
-    log("❌ API failed: " + err.message);
+  if (s.status === "DONE") {
+    health.innerHTML = "System: <span class='ok'>READY</span>";
+  } else if (s.status === "RUNNING") {
+    health.innerHTML = "System: <span class='warn'>RUNNING</span>";
+  } else if (s.status === "ERROR") {
+    health.innerHTML = "System: <span class='bad'>ERROR</span>";
+  } else {
+    health.innerHTML = "System: <span class='warn'>IDLE</span>";
   }
 }
 
-// =========================
-// REINSTALL
-// =========================
-async function reinstall() {
-
-  // 🧠 先鎖 lifecycle
+/**************************************************
+ * 🔁 RESET
+ **************************************************/
+async function reset() {
   await fetch(GAS_URL + "?action=reset");
-  await fetch(GAS_URL + "?action=lifecycle&mode=RESETTING");
-
-  window.location.href = "setup.html?reinstall=1";
 }
 
-// =========================
-// RESET
-// =========================
-async function resetSystem() {
-
-  log("🧨 reset system");
-  setProgress(20);
-
-  try {
-
-    const res = await fetch(GAS_URL + "?path=reset");
-    const data = await res.json();
-
-    log("✔ reset: " + JSON.stringify(data));
-
-    setProgress(0);
-
-  } catch (err) {
-
-    log("❌ reset failed: " + err.message);
-  }
+/**************************************************
+ * 🚀 REINSTALL (TRIGGERS AUTO BOOT)
+ **************************************************/
+async function reinstall() {
+  await fetch(GAS_URL + "?action=reset");
 }
-
-// =========================
-// AUTO REFRESH（🔥 PRO 功能）
-// =========================
-setInterval(loadStatus, 5000);
-
-// =========================
-// BOOT
-// =========================
-document.addEventListener("DOMContentLoaded", () => {
-  loadStatus();
-});
 
 </script>
 

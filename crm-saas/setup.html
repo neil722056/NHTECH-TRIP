@@ -122,29 +122,32 @@ function setBar(val){
 }
 
 function startInstall(){
-  progress = 0;
-  step = 0;
-  document.getElementById("log").innerHTML = "";
 
-  log("🚀 開始 SaaS 安裝流程...");
+  setStatus("🚀 連接 SaaS backend...");
 
-  let interval = setInterval(()=>{
-    if(step >= steps.length){
-      clearInterval(interval);
-      setStatus("🎉 安裝完成 - 系統已啟用");
-      log("✅ CRM SaaS 已成功啟動");
-      return;
+  fetch("YOUR_GAS_URL_HERE", {
+    method: "POST",
+    body: JSON.stringify({
+      tenant: "crm_" + Date.now()
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    if(data.success){
+      setBar(100);
+      setStatus("🎉 CRM 建立完成！");
+      log("✅ CRM URL: " + data.crm_url);
+      log("📦 Sheet ID: " + data.sheet_id);
     }
 
-    progress += 100 / steps.length;
-    setBar(progress);
-
-    setStatus("⏳ " + steps[step]);
-    log("➡️ " + steps[step]);
-
-    step++;
-  }, 1200);
+  })
+  .catch(err => {
+    setStatus("❌ 安裝失敗");
+    log(err.toString());
+  });
 }
+
 </script>
 
 </body>

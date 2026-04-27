@@ -121,33 +121,27 @@ function setBar(val){
   document.getElementById("bar").style.width = val + "%";
 }
 
+let installing = false;
+
 function startInstall(){
 
-  setStatus("🚀 連接 SaaS backend...");
+  if(installing) return;
+  installing = true;
 
-  fetch("https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec", {
-    method: "POST",
-    body: JSON.stringify({
-      tenant: "crm_" + Date.now()
+  setStatus("🚀 安裝中...");
+
+  fetch(GAS_URL, {...})
+    .then(r => r.json())
+    .then(data => {
+      installing = false;
+      setStatus("✅ 完成");
     })
-  })
-  .then(res => res.json())
-  .then(data => {
-
-    if(data.success){
-      setBar(100);
-      setStatus("🎉 CRM 建立完成！");
-      log("✅ CRM URL: " + data.crm_url);
-      log("📦 Sheet ID: " + data.sheet_id);
-    }
-
-  })
-  .catch(err => {
-    setStatus("❌ 安裝失敗");
-    log(err.toString());
-  });
-}
-
+    .catch(err => {
+      installing = false;
+      setStatus("❌ 失敗");
+    });
+}  
+  
 </script>
 
 </body>

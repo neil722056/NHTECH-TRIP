@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🚀 CRM SaaS Setup 安裝系統</title>
+  <style>
+    body{
+      margin:0;
+      font-family:Arial;
+      background:#0b1220;
+      color:#e2e8f0;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+
+    .box{
+      width:720px;
+      background:#0f172a;
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.6);
+    }
+
+    h2{
+      margin-top:0;
+      color:#22c55e;
+    }
+
+    .bar{
+      width:100%;
+      height:18px;
+      background:#1f2937;
+      border-radius:10px;
+      overflow:hidden;
+      margin-top:12px;
+    }
+
+    .progress{
+      height:100%;
+      width:0%;
+      background:#22c55e;
+      transition:width .3s;
+    }
+
+    .status{
+      margin-top:10px;
+      font-size:14px;
+      color:#94a3b8;
+      min-height:20px;
+    }
+
+    .log{
+      margin-top:15px;
+      background:#0b1220;
+      padding:10px;
+      border-radius:10px;
+      height:180px;
+      overflow:auto;
+      font-size:12px;
+      color:#cbd5e1;
+    }
+
+    button{
+      margin-top:15px;
+      padding:10px;
+      border:none;
+      border-radius:10px;
+      background:#3b82f6;
+      color:white;
+      cursor:pointer;
+    }
+
+    .ok{color:#22c55e;}
+    .run{color:#facc15;}
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>🚀 CRM SaaS 一鍵安裝系統</h2>
+
+  <div class="bar">
+    <div class="progress" id="bar"></div>
+  </div>
+
+  <div class="status" id="status">等待開始安裝...</div>
+
+  <button onclick="startInstall()">🚀 start install</button>
+
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+let progress = 0;
+let step = 0;
+
+const steps = [
+  "初始化 SaaS 環境...",
+  "建立 Google Sheet CRM 資料庫...",
+  "部署 GAS Web App...",
+  "設定 LINE Webhook...",
+  "建立 AI scoring engine...",
+  "綁定 CRM SaaS tenant...",
+  "部署完成 🎉"
+];
+
+function log(msg){
+  const el = document.getElementById("log");
+  el.innerHTML += msg + "<br>";
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(msg){
+  document.getElementById("status").innerText = msg;
+}
+
+function setBar(val){
+  document.getElementById("bar").style.width = val + "%";
+}
+
+function startInstall(){
+  progress = 0;
+  step = 0;
+  document.getElementById("log").innerHTML = "";
+
+  log("🚀 開始 SaaS 安裝流程...");
+
+  let interval = setInterval(()=>{
+    if(step >= steps.length){
+      clearInterval(interval);
+      setStatus("🎉 安裝完成 - 系統已啟用");
+      log("✅ CRM SaaS 已成功啟動");
+      return;
+    }
+
+    progress += 100 / steps.length;
+    setBar(progress);
+
+    setStatus("⏳ " + steps[step]);
+    log("➡️ " + steps[step]);
+
+    step++;
+  }, 1200);
+}
+</script>
+
+</body>
+</html>

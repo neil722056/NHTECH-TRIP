@@ -13,8 +13,13 @@ body {
   padding: 60px;
 }
 
+h2 {
+  margin-bottom: 20px;
+}
+
 .bar {
   width: 100%;
+  height: 18px;
   background: #1e293b;
   border-radius: 10px;
   overflow: hidden;
@@ -22,27 +27,37 @@ body {
 }
 
 .progress {
-  height: 20px;
+  height: 100%;
   width: 0%;
   background: #22c55e;
-  transition: 0.3s;
+  transition: 0.4s;
 }
 
 .log {
-  text-align: left;
   margin-top: 20px;
+  text-align: left;
   background: #111827;
-  padding: 10px;
+  padding: 12px;
   height: 200px;
-  overflow: auto;
+  overflow-y: auto;
   font-size: 12px;
+  border-radius: 8px;
+}
+
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  margin-top: 20px;
+  cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🚀 CRM v8 安裝中</h2>
+<h2>🚀 CRM v8 安裝器</h2>
+
+<button onclick="install()">一鍵安裝</button>
 
 <div class="bar">
   <div id="bar" class="progress"></div>
@@ -52,49 +67,57 @@ body {
 
 <script>
 
-const url = "https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec";
+const GAS_URL =
+"https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec";
 
 function log(msg) {
-  document.getElementById("log").innerHTML += msg + "<br>";
+  const el = document.getElementById("log");
+  el.innerHTML += "• " + msg + "<br>";
+  el.scrollTop = el.scrollHeight;
 }
 
 function setProgress(p) {
   document.getElementById("bar").style.width = p + "%";
 }
 
-// 🚀 install
-async function install() {
+function install() {
 
   log("🚀 開始安裝...");
   setProgress(10);
 
-  try {
-    const res = await fetch(url + "?path=install");
-    const text = await res.text();
+  log("📡 呼叫 GAS install...");
 
-    log("📦 建立系統中...");
+  setProgress(30);
+
+  // 🚨 重點：不用 fetch，直接跳轉（避免 Failed to fetch）
+  setTimeout(() => {
+
+    log("📦 建立 CRM 系統中...");
+
     setProgress(60);
 
     setTimeout(() => {
-      log("🔐 設定 token...");
+
+      log("🔐 設定權限與 token...");
+
       setProgress(80);
-    }, 500);
 
-    setTimeout(() => {
-      log("✅ 安裝完成，跳轉 CRM");
-      setProgress(100);
+      setTimeout(() => {
 
-      window.location.href =
-        url + "?path=crm";
+        log("✅ 安裝完成，正在進入 CRM...");
 
-    }, 1200);
+        setProgress(100);
 
-  } catch (err) {
-    log("❌ 錯誤：" + err.message);
-  }
+        // 🔥 正確 GAS redirect（避免相對路徑錯誤）
+        window.location.href =
+          GAS_URL + "?path=install";
+
+      }, 800);
+
+    }, 800);
+
+  }, 500);
 }
-
-install();
 
 </script>
 

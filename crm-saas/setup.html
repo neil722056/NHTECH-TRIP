@@ -80,45 +80,40 @@ function setProgress(p) {
   document.getElementById("bar").style.width = p + "%";
 }
 
-function install() {
+async function install() {
 
   log("🚀 開始安裝...");
-  setProgress(10);
+  setProgress(20);
 
-  log("📡 呼叫 GAS install...");
+  try {
 
-  setProgress(30);
+    log("📡 呼叫 GAS...");
 
-  // 🚨 重點：不用 fetch，直接跳轉（避免 Failed to fetch）
-  setTimeout(() => {
+    const res = await fetch(GAS_URL + "?path=install");
+    const data = await res.text(); // 因為你現在回 OK
 
-    log("📦 建立 CRM 系統中...");
+    setProgress(80);
 
-    setProgress(60);
+    if (!data.includes("OK")) {
+      throw new Error("install failed");
+    }
+
+    log("📦 GAS 回應：" + data);
+
+    setProgress(100);
+
+    log("✅ 安裝完成");
 
     setTimeout(() => {
-
-      log("🔐 設定權限與 token...");
-
-      setProgress(80);
-
-      setTimeout(() => {
-
-        log("✅ 安裝完成，正在進入 CRM...");
-
-        setProgress(100);
-
-        // 🔥 正確 GAS redirect（避免相對路徑錯誤）
-        window.location.href =
-          GAS_URL + "?path=install";
-
-      }, 800);
-
+      window.location.href = "/crm";
     }, 800);
 
-  }, 500);
+  } catch (err) {
+    console.error(err);
+    log("❌ 安裝失敗：" + err.message);
+    setProgress(0);
+  }
 }
-
 </script>
 
 </body>

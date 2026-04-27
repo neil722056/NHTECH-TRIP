@@ -2,17 +2,35 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>CRM SaaS v8</title>
+  <title>v8 CRM Loader</title>
 </head>
+<body>
 
-<body style="font-family:Arial; text-align:center; padding:60px;">
+<h3>Loading CRM System...</h3>
 
-  <h1>🚀 CRM SaaS v8</h1>
-  <p>System loading...</p>
+<script>
 
-  <button onclick="location.href='setup.html'">
-    Start Installation
-  </button>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbymF5s_0BVe8_kqhsGJXAnY9icWcPSgYeDVylA8g_0O0CKQXTFC_yxYmTtQTVQTYqLd/exec";
+
+async function boot() {
+
+  const res = await fetch(GAS_URL + "?path=state");
+  const state = await res.json();
+
+  console.log(state);
+
+  if (state.installed) {
+    // 🟢 已安裝 → dashboard
+    window.location.href = "dashboard.html";
+  } else {
+    // 🔴 未安裝 → setup
+    window.location.href = "setup.html";
+  }
+}
+
+boot();
+
+</script>
 
 </body>
 </html>

@@ -2,125 +2,28 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>CRM v8 AI Installer</title>
-
-<style>
-body {
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-.box {
-  width:420px;
-  background:#111827;
-  padding:30px;
-  border-radius:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.4);
-}
-
-.title {
-  font-size:18px;
-  margin-bottom:20px;
-  color:#38bdf8;
-}
-
-.bar-bg {
-  width:100%;
-  height:14px;
-  background:#1f2937;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-.bar {
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#22c55e,#38bdf8,#a78bfa);
-  transition:0.3s;
-}
-
-.step {
-  margin-top:15px;
-  font-size:14px;
-  color:#cbd5e1;
-  min-height:20px;
-}
-
-.status {
-  margin-top:10px;
-  font-size:12px;
-  color:#94a3b8;
-}
-</style>
+<title>CRM v8 Installer</title>
 </head>
 
-<body>
+<body style="font-family:Arial;text-align:center;padding:60px;background:#0f172a;color:white">
 
-<div class="box">
-  <div class="title">🚀 CRM v8 AI 安裝器</div>
+<h2>🚀 CRM v8 SaaS 安裝器</h2>
 
-  <div class="bar-bg">
-    <div id="bar" class="bar"></div>
-  </div>
-
-  <div id="step" class="step">準備啟動 AI 安裝系統...</div>
-  <div id="status" class="status">初始化中</div>
-</div>
+<button onclick="install()" style="padding:15px 30px;font-size:18px;">
+一鍵安裝
+</button>
 
 <script>
 
-const steps = [
-  {text:"連線 Google Apps Script API...", p:10},
-  {text:"建立 crm_users 表...", p:25},
-  {text:"建立 crm_log 表...", p:40},
-  {text:"部署 AI scoring engine...", p:60},
-  {text:"初始化 LINE Webhook...", p:75},
-  {text:"載入 sales AI 模型...", p:90},
-  {text:"完成系統整合...", p:100}
-];
-
-let i = 0;
-let progress = 0;
-
-function updateUI(p, text){
-  document.getElementById("bar").style.width = p + "%";
-  document.getElementById("step").innerText = text;
+function install() {
+  fetch("YOUR_GAS_URL?path=install")
+    .then(res => res.text())
+    .then(html => {
+      document.open();
+      document.write(html);
+      document.close();
+    });
 }
-
-function fakeInstall(){
-  let interval = setInterval(() => {
-
-    if(i < steps.length){
-      let target = steps[i].p;
-
-      if(progress < target){
-        progress += Math.random() * 6;
-        updateUI(progress, steps[i].text);
-      } else {
-        i++;
-      }
-
-    } else {
-      clearInterval(interval);
-
-      updateUI(100, "🎉 CRM v8 安裝完成！");
-      document.getElementById("status").innerText = "正在導向系統...";
-
-      setTimeout(() => {
-        // 👉 改成你的 CRM URL
-        window.location.href = "https://YOUR-CRM-URL";
-      }, 1200);
-    }
-
-  }, 200);
-}
-
-fakeInstall();
 
 </script>
 

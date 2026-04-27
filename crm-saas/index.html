@@ -11,61 +11,37 @@
 <script>
 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
-
 async function boot() {
 
-  try {
+  const res = await fetch(GAS_URL + "?action=state");
+  const data = await res.json();
 
-    const res = await fetch(GAS_URL + "?action=state");
-    const data = await res.json();
+  const state = data.state;
 
-    const state = data.state;
+  console.log("STATE:", state);
 
-    console.log("STATE:", state);
-
-    /***********************
-     * 🧠 STATE ROUTING
-     ***********************/
-    if (state.status === "DONE") {
-
-      window.location.href = "dashboard.html";
-      return;
-    }
-
-    if (state.status === "IDLE" || !state.status) {
-
-      window.location.href = "setup.html";
-      return;
-    }
-
-    if (state.status === "RUNNING") {
-
-      // install running → stay in dashboard mode
-      window.location.href = "dashboard.html";
-      return;
-    }
-
-    if (state.status === "ERROR") {
-
-      alert("System error detected, redirecting to setup");
-      window.location.href = "setup.html";
-      return;
-    }
-
-    // fallback
+  // 🟢 已完成
+  if (state.status === "DONE") {
     window.location.href = "dashboard.html";
-
-  } catch (err) {
-
-    console.error("BOOT FAIL:", err);
-
-    // fallback safe mode
-    window.location.href = "setup.html";
+    return;
   }
+
+  // 🟡 安裝中 → 進 dashboard（不要丟 setup）
+  if (state.status === "RUNNING") {
+    window.location.href = "dashboard.html";
+    return;
+  }
+
+  // 🔴 未安裝 / reset
+  if (!state.status || state.status === "IDLE" || state.status === "RESET") {
+    window.location.href = "setup.html";
+    return;
+  }
+
+  // 🟠 fallback（避免卡死）
+  window.location.href = "dashboard.html";
 }
-
 boot();
-
 </script>
 </body>
 </html>

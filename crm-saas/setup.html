@@ -64,7 +64,7 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /***********************
- * 🧠 STATE FLAGS
+ * 🧠 FLAGS
  ***********************/
 let installing = false;
 let isReinstall = false;
@@ -114,7 +114,7 @@ function render(state) {
 }
 
 /***********************
- * 📡 STATE ENGINE
+ * 📡 FETCH STATE
  ***********************/
 async function fetchState() {
 
@@ -135,25 +135,41 @@ async function fetchState() {
   render(state);
 
   /**************************************************
-   * 🚀 SAFE AUTO BOOTSTRAP (FIXED LOOP PROBLEM)
+   * 🚀 SMART BOOT LOGIC (FIXED LOOP VERSION)
    **************************************************/
-  if (!installing && state.status === "IDLE" && state.step === "0" && state.msg !== "RESET") {
+
+  // 🟢 只在真正初始化才啟動
+  if (
+    !installing &&
+    state.step === "0" &&
+    state.status === "IDLE"
+  ) {
     startInstall();
   }
-  
+
   /**************************************************
-   * 🚀 SAFE REDIRECT (NO REINSTALL LOOP)
+   * 🚀 RESET BOOT HANDLING
    **************************************************/
   if (
-    state.status === "DONE" &&
-    !isReinstall
+    isReinstall &&
+    !installing &&
+    state.step === "0"
   ) {
+    setTimeout(() => {
+      startInstall();
+    }, 600);
+  }
+
+  /**************************************************
+   * 🚀 SAFE REDIRECT
+   **************************************************/
+  if (state.status === "DONE") {
     window.location.href = "dashboard.html";
   }
 }
 
 /***********************
- * 🚀 INSTALL TRIGGER (LOCKED)
+ * 🚀 INSTALL LOCK
  ***********************/
 async function startInstall() {
 
@@ -190,14 +206,14 @@ async function loadVersion() {
       "CRM Setup (" + data.version + " Visual Engine)";
 
   } catch (e) {
-    console.log("version failed");
+    console.log("version load failed");
   }
 }
 
 /***********************
- * 🔁 POLLING ENGINE
+ * 🔁 LOOP
  ***********************/
-setInterval(fetchState, 1200);
+setInterval(fetchState, 1000);
 
 /***********************
  * 🚀 INIT

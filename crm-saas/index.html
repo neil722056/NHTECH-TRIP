@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>v8 CRM Boot</title>
+  <title>v8 CRM Boot System</title>
 
   <style>
     body {
@@ -12,14 +12,16 @@
       align-items: center;
       height: 100vh;
       flex-direction: column;
+      background: #f6f7fb;
     }
 
     .box {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 320px;
       text-align: center;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      width: 300px;
     }
 
     .dot::after {
@@ -33,24 +35,40 @@
       66% { content: '..'; }
       100% { content: '...'; }
     }
+
+    small {
+      color: gray;
+    }
   </style>
 </head>
 
 <body>
 
 <div class="box">
-  <h3>🚀 CRM System</h3>
+  <h2>🚀 v8 CRM System</h2>
+
   <p id="status">Loading<span class="dot"></span></p>
+
+  <small id="debug">connecting...</small>
 </div>
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbymF5s_0BVe8_kqhsGJXAnY9icWcPSgYeDVylA8g_0O0CKQXTFC_yxYmTtQTVQTYqLd/exec"; // 🔥 一定要換
+const GAS_URL = "YOUR_GAS_WEB_APP_URL"; // 🔥 一定要改
 
+// =========================
+// BOOT FUNCTION
+// =========================
 async function boot() {
+
+  const status = document.getElementById("status");
+  const debug = document.getElementById("debug");
 
   try {
 
+    debug.innerText = "calling GAS...";
+
+    // ⏱ timeout 防卡死
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
@@ -61,15 +79,17 @@ async function boot() {
     clearTimeout(timeout);
 
     if (!res.ok) {
-      throw new Error("HTTP error: " + res.status);
+      throw new Error("HTTP " + res.status);
     }
 
     const state = await res.json();
 
     console.log("STATE:", state);
 
-    document.getElementById("status").innerText =
-      "System detected: " + (state.installed ? "INSTALLED" : "NOT INSTALLED");
+    debug.innerText = "state received";
+
+    status.innerText =
+      state.installed ? "System: INSTALLED" : "System: NOT INSTALLED";
 
     setTimeout(() => {
 
@@ -79,22 +99,26 @@ async function boot() {
         window.location.href = "setup.html";
       }
 
-    }, 800);
+    }, 600);
 
   } catch (err) {
 
     console.error(err);
 
-    document.getElementById("status").innerHTML =
-      "❌ Connection failed<br><small>" + err.message + "</small>";
+    status.innerHTML = "❌ Connection Failed";
 
-    // fallback：避免卡死
+    debug.innerText = err.message;
+
+    // 🟢 fallback（避免死在 loading）
     setTimeout(() => {
       window.location.href = "setup.html";
-    }, 3000);
+    }, 2500);
   }
 }
 
+// =========================
+// START
+// =========================
 boot();
 
 </script>

@@ -122,14 +122,11 @@ function setBar(val){
 
 let installing = false;
 
-function startInstall(){
-
-  if(installing) return;
-  installing = true;
-
-  setStatus("🚀 安裝中...");
+function startInstall() {
 
   const GAS_URL = "https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec";
+
+  console.log("🚀 start");
 
   fetch(GAS_URL, {
     method: "POST",
@@ -139,27 +136,16 @@ function startInstall(){
     body: JSON.stringify({
       tenant: "crm_" + Date.now()
     })
-})
-  .then(res => res.json())
+  })
+  .then(r => r.text())
   .then(data => {
-    console.log("success:", data);
-})
+    console.log("RAW RESPONSE:", data);
+  })
   .catch(err => {
-    console.log("error:", err);
-});
-  
-  fetch(GAS_URL, {...})
-    .then(r => r.json())
-    .then(data => {
-      installing = false;
-      setStatus("✅ 完成");
-    })
-    .catch(err => {
-      installing = false;
-      setStatus("❌ 失敗");
-    });
+    console.error("ERROR:", err);
+  });
+
 }  
-  
 </script>
 
 </body>

@@ -1,155 +1,149 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>CRM v8 Installer</title>
+  <meta charset="utf-8">
+  <title>CRM Setup v8.1.4</title>
 
-<style>
-body {
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-  text-align: center;
-  padding: 60px;
-}
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+    }
 
-h2 {
-  margin-bottom: 20px;
-}
+    h2 {
+      margin-bottom: 20px;
+    }
 
-.bar {
-  width: 100%;
-  height: 18px;
-  background: #1e293b;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 20px;
-}
+    .node {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      transition: 0.3s;
+    }
 
-.progress {
-  height: 100%;
-  width: 0%;
-  background: #22c55e;
-  transition: 0.4s;
-}
+    .done {
+      background: #22c55e;
+    }
 
-.log {
-  margin-top: 20px;
-  text-align: left;
-  background: #111827;
-  padding: 12px;
-  height: 200px;
-  overflow-y: auto;
-  font-size: 12px;
-  border-radius: 8px;
-}
+    .running {
+      background: #f59e0b;
+    }
 
-button {
-  padding: 12px 24px;
-  font-size: 16px;
-  margin-top: 20px;
-  cursor: pointer;
-}
-</style>
+    .wait {
+      background: #334155;
+    }
+
+    .error {
+      background: #ef4444;
+    }
+
+    .container {
+      max-width: 500px;
+    }
+
+    .title {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .statusBox {
+      margin-top: 20px;
+      padding: 10px;
+      background: #1e293b;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>🚀 CRM v8 安裝器</h2>
+<h2>🚀 CRM Install (v8.1.4 Visual Engine)</h2>
 
-<button onclick="install()">一鍵安裝</button>
+<div class="container" id="flow"></div>
 
-<div class="bar">
-  <div id="bar" class="progress"></div>
-</div>
-
-<div class="log" id="log"></div>
+<div class="statusBox" id="status">Waiting...</div>
 
 <script>
 
-const GAS_URL =
-"https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
-function log(msg) {
-  const el = document.getElementById("log");
-  el.innerHTML += "• " + msg + "<br>";
-  el.scrollTop = el.scrollHeight;
+const nodes = [
+  "CHECK PERMISSION",
+  "CREATE SPREADSHEET",
+  "CREATE TABLES",
+  "WRITE CONFIG",
+  "API READY",
+  "FINALIZE"
+];
+
+let lastState = {};
+
+function renderFlow(state) {
+
+  const flow = document.getElementById("flow");
+  flow.innerHTML = "";
+
+  nodes.forEach((n, i) => {
+
+    let className = "node wait";
+
+    if (state.step > i) className = "node done";
+    if (state.step == i) className = "node running";
+
+    if (state.status === "ERROR") className = "node error";
+
+    const div = document.createElement("div");
+    div.className = className;
+
+    div.innerHTML = `
+      <span>${i + 1}. ${n}</span>
+      <span>${className.split(" ")[1]}</span>
+    `;
+
+    flow.appendChild(div);
+  });
 }
 
-function setProgress(p) {
-  document.getElementById("bar").style.width = p + "%";
+async function fetchState() {
+
+  try {
+
+    const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
+    const data = await res.json();
+
+    const state = data.state;
+
+    document.getElementById("status").innerText =
+      "Status: " + state.status + " | Step: " + state.step;
+
+    renderFlow(state);
+
+    lastState = state;
+
+    // 🚀 AUTO REDIRECT
+    if (state.status === "DONE") {
+      window.location.href = "dashboard.html";
+    }
+
+  } catch (err) {
+
+    document.getElementById("status").innerText =
+      "ERROR: " + err.message;
+
+  }
 }
 
-let ssId = null;
-async function install() {
+// 🔁 polling (real-time flow)
+setInterval(fetchState, 1000);
 
-  log("🚀 開始安裝...");
-  setProgress(10);
+fetchState();
 
-  // =====================
-  // STEP 1
-  // =====================
-  log("📡 STEP 1: create");
-
-  let res = await fetch(GAS_URL + "?path=install&step=create");
-  let data = await res.json();
-
-  console.log("DEBUG:", data);
-
-  if (data.status === "error") {
-    log("❌ Error: " + data.message);
-    return;
-  }
-
-  ssId = data.ssId;
-  setProgress(data.progress);
-  log("✔ " + data.log);
-
-  // =====================
-  // STEP 2
-  // =====================
-  log("📡 STEP 2: tables");
-
-  res = await fetch(GAS_URL + `?path=install&step=tables&ssId=${ssId}`);
-  data = await res.json();
-
-  console.log("DEBUG:", data);
-
-  if (data.status === "error") {
-    log("❌ Error: " + data.message);
-    return;
-  }
-
-  setProgress(data.progress);
-  log("✔ " + data.log);
-
-  // =====================
-  // STEP 3
-  // =====================
-  log("📡 STEP 3: properties");
-
-  res = await fetch(GAS_URL + `?path=install&step=properties&ssId=${ssId}`);
-  data = await res.json();
-
-  console.log("DEBUG:", data);
-
-  if (data.status === "error") {
-    log("❌ Error: " + data.message);
-    return;
-  }
-
-  setProgress(data.progress);
-  log("✔ " + data.log);
-
-  // =====================
-  // DONE
-  // =====================
-  setProgress(100);
-  log("✅ 安裝完成");
-
-  window.location.href = "index.html";
-  
-}</script>
+</script>
 
 </body>
 </html>

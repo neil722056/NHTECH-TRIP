@@ -137,13 +137,10 @@ async function fetchState() {
   /**************************************************
    * 🚀 SAFE AUTO BOOTSTRAP (FIXED LOOP PROBLEM)
    **************************************************/
-  if (
-    !installing &&
-    (state.status === "IDLE" && state.step === "0")
-  ) {
+  if (!installing && state.status === "IDLE" && state.step === "0" && state.msg !== "RESET") {
     startInstall();
   }
-
+  
   /**************************************************
    * 🚀 SAFE REDIRECT (NO REINSTALL LOOP)
    **************************************************/

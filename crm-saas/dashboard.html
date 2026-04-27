@@ -66,7 +66,7 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 LIVE STATE LOOP (CONTROL PLANE ONLY)
+ * 🚀 STATE LOOP (CONTROL PLANE ONLY)
  **************************************************/
 setInterval(loadState, 1500);
 loadState();
@@ -86,6 +86,11 @@ async function loadState() {
     s.crmId || "-";
 
   renderHealth(s);
+
+  /**************************************************
+   * 🔍 UI DRIFT DETECTOR
+   **************************************************/
+  detectUIDrift(s);
 }
 
 /**************************************************
@@ -107,7 +112,7 @@ function bindUI(state) {
 }
 
 /**************************************************
- * 🧠 HEALTH VIEW
+ * 🧠 HEALTH RENDER
  **************************************************/
 function renderHealth(s) {
 
@@ -121,6 +126,25 @@ function renderHealth(s) {
     el.innerHTML = "System: <span class='bad'>ERROR</span>";
   } else {
     el.innerHTML = "System: <span class='warn'>IDLE</span>";
+  }
+}
+
+/**************************************************
+ * 🔍 UI DRIFT DETECTOR
+ **************************************************/
+function detectUIDrift(state) {
+
+  const uiVersion =
+    document.querySelector("[data-bind-version]")?.innerText || "";
+
+  if (uiVersion && !uiVersion.includes(state.version)) {
+
+    console.warn("⚠ UI DRIFT DETECTED", {
+      ui: uiVersion,
+      backend: state.version
+    });
+
+    document.body.style.border = "2px solid red";
   }
 }
 

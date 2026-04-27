@@ -120,7 +120,6 @@ async function fetchState() {
 
   const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
   const data = await res.json();
-
   const state = data.state || {};
 
   document.getElementById("status").innerText =
@@ -129,40 +128,21 @@ async function fetchState() {
   document.getElementById("msg").innerText =
     state.msg || "";
 
-  document.getElementById("meta").innerText =
-    "CRM ID: " + (state.crmId || "-");
-
   render(state);
 
   /**************************************************
-   * 🚀 SMART BOOT LOGIC (FIXED LOOP VERSION)
+   * 🚀 v8.3.1 SMART BOOT FIX CORE
    **************************************************/
 
-  // 🟢 只在真正初始化才啟動
-  if (
-    !installing &&
-    state.step === "0" &&
-    state.status === "IDLE"
-  ) {
+  const bootRes = await fetch(GAS_URL + "?action=bootCheck&t=" + Date.now());
+  const bootData = await bootRes.json();
+
+  // 🟢 強制自動 install（修 IDLE 卡死問題）
+  if (bootData.needInstall && !installing) {
     startInstall();
   }
 
-  /**************************************************
-   * 🚀 RESET BOOT HANDLING
-   **************************************************/
-  if (
-    isReinstall &&
-    !installing &&
-    state.step === "0"
-  ) {
-    setTimeout(() => {
-      startInstall();
-    }, 600);
-  }
-
-  /**************************************************
-   * 🚀 SAFE REDIRECT
-   **************************************************/
+  // 🟢 install 完成跳轉
   if (state.status === "DONE") {
     window.location.href = "dashboard.html";
   }

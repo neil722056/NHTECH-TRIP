@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>CRM Dashboard v8.3.3</title>
+  <title>CRM Dashboard</title>
 
   <style>
     body {
@@ -58,7 +58,7 @@
 </div>
 
 <div class="box">
-  <div id="health">System: checking...</div>
+  <div id="health">System: loading...</div>
 </div>
 
 <script>
@@ -66,7 +66,7 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 LIVE STATE LOOP
+ * 🚀 LIVE STATE LOOP (CONTROL PLANE ONLY)
  **************************************************/
 setInterval(loadState, 1500);
 loadState();
@@ -77,6 +77,9 @@ async function loadState() {
   const data = await res.json();
   const s = data.state || {};
 
+  /**************************************************
+   * 🧠 CONTROL PLANE BINDING
+   **************************************************/
   document.getElementById("version").innerText =
     "Version: " + (s.version || "-");
 
@@ -109,14 +112,14 @@ async function loadState() {
 }
 
 /**************************************************
- * 🔁 RESET
+ * 🔁 RESET (CONTROL PLANE ROUTER)
  **************************************************/
 async function reset() {
   await fetch(GAS_URL + "?action=reset");
 }
 
 /**************************************************
- * 🚀 REINSTALL (TRIGGERS AUTO BOOT)
+ * 🚀 REINSTALL (ALIAS → RESET)
  **************************************************/
 async function reinstall() {
   await fetch(GAS_URL + "?action=reset");

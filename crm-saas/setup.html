@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>CRM Setup v8.1.4</title>
+  <title>CRM Setup</title>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #0f172a;
       color: white;
       padding: 24px;
@@ -14,6 +14,7 @@
 
     h2 {
       margin-bottom: 20px;
+      color: #93c5fd;
     }
 
     .container {
@@ -21,30 +22,19 @@
     }
 
     .node {
-      padding: 12px 14px;
+      padding: 12px;
       margin: 8px 0;
       border-radius: 10px;
       display: flex;
       justify-content: space-between;
-      transition: 0.3s;
+      transition: 0.25s;
       font-size: 14px;
     }
 
-    .done {
-      background: #22c55e;
-    }
-
-    .running {
-      background: #f59e0b;
-    }
-
-    .wait {
-      background: #334155;
-    }
-
-    .error {
-      background: #ef4444;
-    }
+    .done { background: #22c55e; }
+    .running { background: #f59e0b; }
+    .wait { background: #334155; }
+    .error { background: #ef4444; }
 
     .statusBox {
       margin-top: 20px;
@@ -54,34 +44,35 @@
       font-size: 13px;
     }
 
-    .title {
-      margin-bottom: 10px;
-      color: #93c5fd;
+    .small {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 6px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>🚀 CRM Install Setup (v8.1.4 Visual Engine)</h2>
+<h2 id="title">CRM Install Setup</h2>
 
 <div class="container">
 
   <div id="flow"></div>
 
   <div class="statusBox">
-    <div class="title">System Status</div>
-    <div id="status">Waiting...</div>
+    <div id="status">Loading...</div>
+    <div class="small" id="meta"></div>
   </div>
 
 </div>
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec"; // 🔥 改成你的
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec"; // 🔥 改這裡
 
 /***********************
- * 🧠 INSTALL FLOW NODES
+ * 🧠 FLOW NODES
  ***********************/
 const nodes = [
   "CHECK PERMISSION",
@@ -93,7 +84,7 @@ const nodes = [
 ];
 
 /***********************
- * 🎨 RENDER FLOW (Figma-like UI)
+ * 🎨 RENDER FLOW
  ***********************/
 function renderFlow(state) {
 
@@ -102,22 +93,22 @@ function renderFlow(state) {
 
   nodes.forEach((n, i) => {
 
-    let className = "node wait";
+    let cls = "node wait";
 
     if (state.status === "ERROR") {
-      className = "node error";
+      cls = "node error";
     } else if (state.step > i) {
-      className = "node done";
+      cls = "node done";
     } else if (state.step == i) {
-      className = "node running";
+      cls = "node running";
     }
 
     const div = document.createElement("div");
-    div.className = className;
+    div.className = cls;
 
     div.innerHTML = `
       <span>${i + 1}. ${n}</span>
-      <span>${className.replace("node ", "")}</span>
+      <span>${cls.replace("node ", "")}</span>
     `;
 
     flow.appendChild(div);
@@ -138,21 +129,17 @@ async function fetchState() {
     const data = await res.json();
     const state = data.state || {};
 
-    console.log("STATE:", state);
-
-    /***********************
-     * UI STATUS
-     ***********************/
     document.getElementById("status").innerText =
       "Status: " + state.status +
       " | Step: " + state.step +
       " | Msg: " + (state.msg || "");
 
+    document.getElementById("meta").innerText =
+      "CRM ID: " + (state.crmId || "-");
+
     renderFlow(state);
 
-    /***********************
-     * 🚀 AUTO REDIRECT
-     ***********************/
+    // 🚀 AUTO REDIRECT
     if (state.status === "DONE") {
       window.location.href = "dashboard.html";
     }
@@ -161,19 +148,39 @@ async function fetchState() {
 
     document.getElementById("status").innerText =
       "Error: " + err.message;
-
-    console.error("BOOT ERROR:", err);
   }
 }
 
 /***********************
- * 🔁 LIVE POLLING (REAL-TIME FLOW)
+ * 🚀 LOAD VERSION (AUTO SYNC)
+ ***********************/
+async function loadVersion() {
+
+  try {
+
+    const res = await fetch(
+      GAS_URL + "?action=version&t=" + Date.now()
+    );
+
+    const data = await res.json();
+
+    document.getElementById("title").innerText =
+      "CRM Install Setup (" + data.version + " Visual Engine)";
+
+  } catch (e) {
+    console.log("version load fail");
+  }
+}
+
+/***********************
+ * 🔁 POLLING ENGINE
  ***********************/
 setInterval(fetchState, 1000);
 
 /***********************
  * 🚀 INIT
  ***********************/
+loadVersion();
 fetchState();
 
 </script>

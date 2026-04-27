@@ -2,17 +2,17 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>v8 CRM Dashboard Pro</title>
+  <title>v8 CRM Dashboard</title>
 
   <style>
     body {
       font-family: Arial;
-      padding: 20px;
       background: #f6f7fb;
+      padding: 20px;
     }
 
     .card {
-      background: white;
+      background: #fff;
       padding: 15px;
       border-radius: 10px;
       margin-bottom: 15px;
@@ -27,38 +27,23 @@
       cursor: pointer;
     }
 
-    .blue { background: #3498db; color: white; }
-    .red { background: #e74c3c; color: white; }
+    .blue { background: #3498db; color: #fff; }
+    .red { background: #e74c3c; color: #fff; }
 
     pre {
       background: #111;
       color: #0f0;
       padding: 10px;
       border-radius: 6px;
-      height: 200px;
+      height: 180px;
       overflow: auto;
-    }
-
-    .bar {
-      width: 100%;
-      height: 12px;
-      background: #eee;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .bar-inner {
-      height: 100%;
-      width: 0%;
-      background: #2ecc71;
-      transition: 0.3s;
     }
   </style>
 </head>
 
 <body>
 
-<h2>🚀 v8 CRM Dashboard Pro</h2>
+<h2>🚀 v8 CRM Dashboard</h2>
 
 <!-- ========================= -->
 <!-- STATUS -->
@@ -66,35 +51,22 @@
 <div class="card">
   <h3>📊 System Status</h3>
 
-  <div>CRM ID: <span id="crmId">-</span></div>
-  <div>Version: <span id="version">-</span></div>
-  <div>
+  <p>CRM ID: <span id="crmId">Loading...</span></p>
+  <p>Version: <span id="version">Loading...</span></p>
+  <p>
     CRM URL:
-    <a id="crmUrl" target="_blank">-</a>
-  </div>
+    <a id="crmUrl" target="_blank">Loading...</a>
+  </p>
 </div>
 
 <!-- ========================= -->
-<!-- PROGRESS -->
-<!-- ========================= -->
-<div class="card">
-  <h3>⚙️ Progress</h3>
-
-  <div class="bar">
-    <div class="bar-inner" id="bar"></div>
-  </div>
-
-  <div id="statusText">Idle</div>
-</div>
-
-<!-- ========================= -->
-<!-- ACTIONS -->
+<!-- ACTION -->
 <!-- ========================= -->
 <div class="card">
   <h3>🧠 Actions</h3>
 
-  <button class="blue" onclick="Dashboard.reinstall()">🔄 Reinstall</button>
-  <button class="red" onclick="Dashboard.reset()">🧨 Reset</button>
+  <button class="blue" onclick="reinstall()">🔄 Reinstall</button>
+  <button class="red" onclick="resetSystem()">🧨 Reset</button>
 </div>
 
 <!-- ========================= -->
@@ -107,110 +79,97 @@
 
 <script>
 
-// =========================
-// CONFIG
-// =========================
-const GAS_URL = "YOUR_GAS_WEB_APP_URL";
+// 🔥 一定要改成你的 GAS Web App URL
+const GAS_URL = "https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec";
 
 // =========================
-// LOG MODULE
+// LOG
 // =========================
-const Log = {
-  write(msg) {
-    const el = document.getElementById("log");
-    el.innerText += "\n" + msg;
-    console.log(msg);
+function log(msg) {
+  const el = document.getElementById("log");
+  el.innerText += "\n" + msg;
+  console.log(msg);
+}
+
+// =========================
+// LOAD STATUS（核心修正）
+// =========================
+async function loadStatus() {
+
+  log("📡 loading state...");
+
+  try {
+
+    const res = await fetch(GAS_URL + "?path=state");
+    const state = await res.json();
+
+    console.log("STATE:", state);
+
+    document.getElementById("crmId").innerText = state.crmId || "-";
+    document.getElementById("version").innerText = state.version || "-";
+
+    if (state.crmUrl) {
+      document.getElementById("crmUrl").href = state.crmUrl;
+      document.getElementById("crmUrl").innerText = "Open CRM";
+    } else {
+      document.getElementById("crmUrl").innerText = "-";
+    }
+
+    log("✔ state loaded");
+
+  } catch (err) {
+
+    log("❌ load failed: " + err.message);
   }
-};
+}
 
 // =========================
-// API MODULE
+// REINSTALL
 // =========================
-const API = {
-  async call(path) {
-    const res = await fetch(GAS_URL + path);
-    return await res.json();
-  }
-};
+async function reinstall() {
 
-// =========================
-// STATE MODULE
-// =========================
-const State = {
-  async load() {
-    return await API.call("?path=state");
-  }
-};
+  log("♻️ reinstall start...");
 
-// =========================
-// INSTALL MODULE
-// =========================
-const Install = {
+  try {
 
-  async reinstall() {
+    await fetch(GAS_URL + "?path=reset");
 
-    Log.write("♻️ reinstall start");
-
-    await API.call("?path=reset");
-
-    Log.write("✔ reset done");
-
-    document.getElementById("statusText").innerText =
-      "Redirecting to setup...";
+    log("✔ reset done");
 
     setTimeout(() => {
       window.location.href = "setup.html";
     }, 800);
-  },
 
-  async reset() {
+  } catch (err) {
 
-    Log.write("🧨 hard reset");
-
-    const res = await API.call("?path=reset");
-
-    Log.write("✔ reset complete: " + JSON.stringify(res));
-
-    document.getElementById("bar").style.width = "0%";
+    log("❌ reinstall failed: " + err.message);
   }
-};
+}
 
 // =========================
-// DASHBOARD CORE
+// RESET ONLY
 // =========================
-const Dashboard = {
+async function resetSystem() {
 
-  async init() {
+  log("🧨 reset system...");
 
-    Log.write("🚀 dashboard booting...");
+  try {
 
-    try {
+    const res = await fetch(GAS_URL + "?path=reset");
+    const data = await res.json();
 
-      const state = await State.load();
+    log("✔ reset: " + JSON.stringify(data));
 
-      document.getElementById("crmId").innerText = state.crmId || "-";
-      document.getElementById("version").innerText = state.version || "-";
+  } catch (err) {
 
-      if (state.crmUrl) {
-        document.getElementById("crmUrl").href = state.crmUrl;
-        document.getElementById("crmUrl").innerText = state.crmUrl;
-      }
-
-      Log.write("✔ state loaded");
-
-    } catch (err) {
-      Log.write("❌ state error: " + err.message);
-    }
-  },
-
-  reinstall: Install.reinstall,
-  reset: Install.reset
-};
+    log("❌ reset failed: " + err.message);
+  }
+}
 
 // =========================
-// BOOT
+// BOOT（🔥 關鍵）
 // =========================
-Dashboard.init();
+document.addEventListener("DOMContentLoaded", loadStatus);
 
 </script>
 

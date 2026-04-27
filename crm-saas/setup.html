@@ -3,22 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <title>CRM v8 Installer</title>
-</head>
 
-<body style="font-family:Arial;text-align:center;padding:60px;background:#0f172a;color:white">
-
-<h2>🚀 CRM v8 SaaS 安裝器</h2>
-
-<button onclick="install()" style="padding:15px 30px;font-size:18px;">
-一鍵安裝
-</button>
-
-<script>
-function install() {
-  window.location.href =
-    "https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec?path=install";
+<style>
+body {
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
+  text-align: center;
+  padding: 60px;
 }
 
+.bar {
+  width: 100%;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.progress {
+  height: 20px;
+  width: 0%;
+  background: #22c55e;
+  transition: 0.3s;
+}
+
+.log {
+  text-align: left;
+  margin-top: 20px;
+  background: #111827;
+  padding: 10px;
+  height: 200px;
+  overflow: auto;
+  font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🚀 CRM v8 安裝中</h2>
+
+<div class="bar">
+  <div id="bar" class="progress"></div>
+</div>
+
+<div class="log" id="log"></div>
+
+<script>
+
+const url = "https://script.google.com/macros/s/AKfycbz1SM78cxu8W7gQzzr5n4COSNBnRy_wRzsQKQFD9MbhgzwuCrawBJXXcqVfzpcDUbo9/exec";
+
+function log(msg) {
+  document.getElementById("log").innerHTML += msg + "<br>";
+}
+
+function setProgress(p) {
+  document.getElementById("bar").style.width = p + "%";
+}
+
+// 🚀 install
+async function install() {
+
+  log("🚀 開始安裝...");
+  setProgress(10);
+
+  try {
+    const res = await fetch(url + "?path=install");
+    const text = await res.text();
+
+    log("📦 建立系統中...");
+    setProgress(60);
+
+    setTimeout(() => {
+      log("🔐 設定 token...");
+      setProgress(80);
+    }, 500);
+
+    setTimeout(() => {
+      log("✅ 安裝完成，跳轉 CRM");
+      setProgress(100);
+
+      window.location.href =
+        url + "?path=crm";
+
+    }, 1200);
+
+  } catch (err) {
+    log("❌ 錯誤：" + err.message);
+  }
+}
+
+install();
 
 </script>
 

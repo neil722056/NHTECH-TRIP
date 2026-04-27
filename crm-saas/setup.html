@@ -1,58 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <title>CRM Setup</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      padding: 20px;
-    }
-
-    .box {
-      background: #111827;
-      padding: 16px;
-      border-radius: 10px;
-      margin-bottom: 12px;
-    }
-
-    .step {
-      margin: 6px 0;
-    }
-
-    .running { color: #fbbf24; }
-    .done { color: #22c55e; }
-    .idle { color: #6b7280; }
-  </style>
-</head>
-
-<body>
-
-<div class="box">
-  <h2 id="title">CRM Setup</h2>
-
-  <div>Version: <span data-bind-version>-</span></div>
-  <div>Status: <span data-bind-status>-</span></div>
-  <div>Message: <span data-bind-msg>-</span></div>
-  <div>CRM ID: <span id="crmId">-</span></div>
-</div>
-
-<div class="box">
-  <h3>Install Flow</h3>
-  <div id="steps"></div>
-</div>
-
-<script>
 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 SMART AUTO ENGINE (v8.4.3)
+ * 🚀 SMART AUTO ENGINE v8.4.4
  **************************************************/
-setInterval(sync, 1200);
+setInterval(sync, 1000);
 sync();
 
 async function sync() {
@@ -68,24 +20,30 @@ async function sync() {
     detectUIDrift(s);
 
     document.getElementById("title").innerText =
-      "CRM Setup (" + (s.version || "-") + ")";
+      "CRM Setup (" + s.version + ")";
 
     document.getElementById("crmId").innerText =
       s.crmId || "-";
 
     /**************************************************
-     * 🚀 AUTO INSTALL ENGINE (CORE v8.4.3)
+     * 🧠 AUTO HEAL ENGINE (v8.4.4)
      **************************************************/
 
-    // 🔥 CASE 1: RESETTING → AUTO INSTALL
+    // 🔥 CASE 1: RESETTING → FORCE INSTALL
     if (s.lifecycle === "RESETTING") {
       await triggerInstall();
       return;
     }
 
-    // 🔥 CASE 2: IDLE + CRM EXISTS → AUTO INSTALL
+    // 🔥 CASE 2: IDLE + CRM EXISTS → INSTALL
     if (s.status === "IDLE" && s.crmId) {
       await triggerInstall();
+      return;
+    }
+
+    // 🔥 CASE 3: STUCK DETECTION
+    if (s.status === "RUNNING" && Number(s.step) === 0) {
+      await triggerInstall(); // restart stuck install
       return;
     }
 
@@ -95,87 +53,15 @@ async function sync() {
 }
 
 /**************************************************
- * 🧠 UI SYNC RULE
- **************************************************/
-function bindUI(state) {
-
-  document.querySelectorAll("[data-bind-version]")
-    .forEach(el => el.innerText = state.version || "-");
-
-  document.querySelectorAll("[data-bind-status]")
-    .forEach(el => el.innerText = state.status || "-");
-
-  document.querySelectorAll("[data-bind-msg]")
-    .forEach(el => el.innerText = state.msg || "-");
-}
-
-/**************************************************
- * 📊 INSTALL FLOW RENDER
- **************************************************/
-function renderSteps(s) {
-
-  const container = document.getElementById("steps");
-
-  const steps = [
-    "CHECK PERMISSION",
-    "CREATE SPREADSHEET",
-    "CREATE TABLES",
-    "WRITE CONFIG",
-    "API READY",
-    "FINALIZE"
-  ];
-
-  container.innerHTML = "";
-
-  steps.forEach((name, i) => {
-
-    let cls = "idle";
-
-    if (Number(s.step) === i + 1) cls = "running";
-    if (Number(s.step) > i + 1) cls = "done";
-
-    container.innerHTML += `
-      <div class="step ${cls}">
-        ${i + 1}. ${name}
-      </div>
-    `;
-  });
-}
-
-/**************************************************
- * 🚀 AUTO INSTALL TRIGGER
+ * 🚀 INSTALL TRIGGER
  **************************************************/
 async function triggerInstall() {
 
-  console.log("🚀 AUTO INSTALL START");
+  console.log("🚀 v8.4.4 AUTO INSTALL TRIGGER");
 
   try {
     await fetch(GAS_URL + "?action=install");
   } catch (e) {
-    console.warn("install trigger failed", e);
+    console.warn("install failed", e);
   }
 }
-
-/**************************************************
- * 🔍 UI DRIFT DETECTOR
- **************************************************/
-function detectUIDrift(state) {
-
-  const uiVersion =
-    document.querySelector("[data-bind-version]")?.innerText || "";
-
-  if (uiVersion && !uiVersion.includes(state.version)) {
-
-    console.warn("⚠ UI DRIFT DETECTED", {
-      ui: uiVersion,
-      backend: state.version
-    });
-
-    document.body.style.border = "2px solid red";
-  }
-}
-
-</script>
-
-</body>
-</html>

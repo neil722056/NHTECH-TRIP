@@ -34,10 +34,10 @@
 <div class="box">
   <h2 id="title">CRM Setup</h2>
 
-  <div id="status">Loading...</div>
-  <div id="msg"></div>
-  <div id="version"></div>
-  <div id="crmId"></div>
+  <div>Version: <span data-bind-version>-</span></div>
+  <div>Status: <span data-bind-status>-</span></div>
+  <div>Message: <span data-bind-msg>-</span></div>
+  <div>CRM ID: <span id="crmId">-</span></div>
 </div>
 
 <div class="box">
@@ -50,7 +50,7 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 STATE LOOP (CONTROL PLANE ONLY)
+ * 🚀 STATE POLLING (CONTROL PLANE ONLY)
  **************************************************/
 setInterval(fetchState, 1200);
 fetchState();
@@ -62,33 +62,41 @@ async function fetchState() {
   const s = data.state || {};
 
   /**************************************************
-   * 🧠 CONTROL PLANE BINDING
+   * 🧠 UI SYNC RULE (v8.4.1 CORE)
    **************************************************/
+  bindUI(s);
+
   document.getElementById("title").innerText =
-    "CRM Setup (" + (s.version || "v8.4.0") + ")";
-
-  document.getElementById("status").innerText =
-    "Status: " + (s.status || "-");
-
-  document.getElementById("msg").innerText =
-    s.msg || "-";
-
-  document.getElementById("version").innerText =
-    "Version: " + (s.version || "-");
+    "CRM Setup (" + s.version + ")";
 
   document.getElementById("crmId").innerText =
-    "CRM ID: " + (s.crmId || "-");
+    s.crmId || "-";
 
   renderSteps(s);
 
   /**************************************************
-   * 🚀 AUTO REDIRECT (DONE STATE)
+   * 🚀 AUTO REDIRECT WHEN DONE
    **************************************************/
   if (s.status === "DONE") {
     setTimeout(() => {
       window.location.href = "dashboard.html";
     }, 800);
   }
+}
+
+/**************************************************
+ * 🧠 UI SYNC RULE
+ **************************************************/
+function bindUI(state) {
+
+  document.querySelectorAll("[data-bind-version]")
+    .forEach(el => el.innerText = state.version || "-");
+
+  document.querySelectorAll("[data-bind-status]")
+    .forEach(el => el.innerText = state.status || "-");
+
+  document.querySelectorAll("[data-bind-msg]")
+    .forEach(el => el.innerText = state.msg || "-");
 }
 
 /**************************************************
@@ -113,8 +121,8 @@ function renderSteps(s) {
 
     let cls = "idle";
 
-    if (s.step == i + 1) cls = "running";
-    if (s.step > i + 1) cls = "done";
+    if (Number(s.step) === i + 1) cls = "running";
+    if (Number(s.step) > i + 1) cls = "done";
 
     container.innerHTML += `
       <div class="step ${cls}">

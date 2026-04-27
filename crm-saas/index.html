@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>CRM Loader</title>
+  <title>CRM Boot Loader</title>
 
   <style>
     body {
@@ -20,10 +20,15 @@
       background: #111827;
       padding: 20px;
       border-radius: 12px;
+      width: 300px;
     }
 
     .loading {
       color: #fbbf24;
+    }
+
+    .error {
+      color: #ef4444;
     }
   </style>
 </head>
@@ -40,7 +45,7 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 BOOT CHECK
+ * 🚀 SMART BOOT ENGINE (v8.4.2 FIXED)
  **************************************************/
 async function boot() {
 
@@ -54,27 +59,44 @@ async function boot() {
       "Version: " + (s.version || "-");
 
     /**************************************************
-     * 🧠 ROUTE DECISION (CONTROL PLANE)
+     * 🧠 SMART ROUTING LOGIC
      **************************************************/
     setTimeout(() => {
 
-      if (!s.crmId || s.status === "IDLE") {
+      // 🔁 RESETTING → setup
+      if (s.lifecycle === "RESETTING") {
         window.location.href = "setup.html";
-      } else {
-        window.location.href = "dashboard.html";
+        return;
       }
 
-    }, 600);
+      // 🟡 未初始化
+      if (!s.crmId || s.status === "IDLE") {
+        window.location.href = "setup.html";
+        return;
+      }
+
+      // 🟢 正常系統
+      window.location.href = "dashboard.html";
+
+    }, 500);
 
   } catch (e) {
 
-    document.getElementById("status").innerText =
-      "Error loading system";
+    /**************************************************
+     * 🧯 FALLBACK MODE (NO CRASH)
+     **************************************************/
+    console.warn("Boot retry...", e);
 
-    console.error(e);
+    document.getElementById("status").innerText =
+      "Retrying connection...";
+
+    setTimeout(boot, 1200); // 🔁 auto retry
   }
 }
 
+/**************************************************
+ * 🚀 START BOOT
+ **************************************************/
 boot();
 
 </script>

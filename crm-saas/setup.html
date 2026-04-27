@@ -83,32 +83,41 @@ function setProgress(p) {
 async function install() {
 
   log("🚀 開始安裝...");
-  setProgress(20);
+  setProgress(10);
 
   try {
 
     log("📡 呼叫 GAS...");
 
     const res = await fetch(GAS_URL + "?path=install");
-    const data = await res.text(); // 因為你現在回 OK
+    const text = await res.text();
 
-    setProgress(80);
+    console.log("RAW RESPONSE:", text);
 
-    if (!data.includes("OK")) {
-      throw new Error("install failed");
+    const data = JSON.parse(text);
+
+    setProgress(60);
+
+    // 🔥 顯示每一步 debug
+    if (data.steps) {
+      data.steps.forEach(s => log("🧩 " + s));
     }
 
-    log("📦 GAS 回應：" + data);
+    if (data.status !== "success") {
+      throw new Error(data.message);
+    }
 
     setProgress(100);
 
     log("✅ 安裝完成");
+    log("📊 CRM: " + data.crmUrl);
 
     setTimeout(() => {
-      window.location.href = "/crm";
-    }, 800);
+      window.location.href = data.crmUrl;
+    }, 1000);
 
   } catch (err) {
+
     console.error(err);
     log("❌ 安裝失敗：" + err.message);
     setProgress(0);

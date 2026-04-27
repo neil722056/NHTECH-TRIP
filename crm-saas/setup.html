@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>CRM Auto Bootstrap</title>
+  <title>CRM Setup</title>
 
   <style>
     body {
@@ -12,29 +12,51 @@
       padding: 24px;
     }
 
-    h2 { color: #60a5fa; }
-
-    .box {
-      padding: 12px;
-      background: #1e293b;
-      border-radius: 10px;
-      margin-top: 12px;
+    h2 {
+      color: #60a5fa;
+      margin-bottom: 16px;
     }
 
-    .running { color: #fbbf24; }
-    .done { color: #22c55e; }
-    .idle { color: #94a3b8; }
+    .box {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .node {
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .done { background: #22c55e; }
+    .running { background: #f59e0b; }
+    .wait { background: #334155; }
+    .error { background: #ef4444; }
+
+    .small {
+      font-size: 12px;
+      opacity: 0.7;
+    }
   </style>
 </head>
 
 <body>
 
-<h2 id="title">CRM Auto Bootstrap</h2>
+<h2 id="title">CRM Setup</h2>
+
+<div class="box">
+  <div id="flow"></div>
+</div>
 
 <div class="box">
   <div id="status">Booting...</div>
-  <div id="step"></div>
-  <div id="msg"></div>
+  <div id="msg" class="small"></div>
+  <div id="meta" class="small"></div>
 </div>
 
 <script>
@@ -42,7 +64,56 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /***********************
- * 📡 STATE CHECK
+ * 🧠 LIFECYCLE FLAGS
+ ***********************/
+let isReinstall = false;
+
+/***********************
+ * 🧠 FLOW NODES
+ ***********************/
+const nodes = [
+  "CHECK PERMISSION",
+  "CREATE SPREADSHEET",
+  "CREATE TABLES",
+  "WRITE CONFIG",
+  "API READY",
+  "FINALIZE"
+];
+
+/***********************
+ * 🎨 RENDER FLOW
+ ***********************/
+function render(state) {
+
+  const flow = document.getElementById("flow");
+  flow.innerHTML = "";
+
+  nodes.forEach((n, i) => {
+
+    let cls = "node wait";
+
+    if (state.status === "ERROR") {
+      cls = "node error";
+    } else if (parseInt(state.step) > i) {
+      cls = "node done";
+    } else if (parseInt(state.step) === i) {
+      cls = "node running";
+    }
+
+    const div = document.createElement("div");
+    div.className = cls;
+
+    div.innerHTML = `
+      <span>${i + 1}. ${n}</span>
+      <span>${cls.replace("node ", "")}</span>
+    `;
+
+    flow.appendChild(div);
+  });
+}
+
+/***********************
+ * 📡 STATE ENGINE
  ***********************/
 async function fetchState() {
 
@@ -52,34 +123,68 @@ async function fetchState() {
   const state = data.state || {};
 
   document.getElementById("status").innerText =
-    "Status: " + state.status;
-
-  document.getElementById("step").innerText =
-    "Step: " + state.step;
+    "Status: " + state.status + " | Step: " + state.step;
 
   document.getElementById("msg").innerText =
     state.msg || "";
 
-  // 🚀 AUTO BOOTSTRAP LOGIC
-  if (state.status === "IDLE" || state.step === "0") {
+  document.getElementById("meta").innerText =
+    "CRM ID: " + (state.crmId || "-");
+
+  render(state);
+
+  /***********************
+   * 🚀 AUTO BOOTSTRAP
+   ***********************/
+  if (
+    state.status === "IDLE" ||
+    state.step === "0"
+  ) {
     startInstall();
   }
 
-  // 🚀 DONE → DASHBOARD
-  if (state.status === "DONE") {
+  /***********************
+   * 🚀 SAFE REDIRECT
+   ***********************/
+  if (state.status === "DONE" && !isReinstall) {
     window.location.href = "dashboard.html";
   }
 }
 
 /***********************
- * 🚀 AUTO INSTALL TRIGGER
+ * 🚀 INSTALL TRIGGER
  ***********************/
 async function startInstall() {
 
   document.getElementById("status").innerText = "Installing...";
 
   await fetch(GAS_URL + "?action=install&t=" + Date.now());
+}
 
+/***********************
+ * 🚀 VERSION SYNC
+ ***********************/
+async function loadVersion() {
+
+  try {
+
+    const res = await fetch(GAS_URL + "?action=version&t=" + Date.now());
+    const data = await res.json();
+
+    document.getElementById("title").innerText =
+      "CRM Setup (" + data.version + " Visual Engine)";
+
+  } catch (e) {
+    console.log("version load failed");
+  }
+}
+
+/***********************
+ * 🧨 REINSTALL DETECT
+ ***********************/
+const params = new URLSearchParams(window.location.search);
+if (params.get("reinstall") === "1") {
+  isReinstall = true;
 }
 
 /***********************
@@ -90,6 +195,7 @@ setInterval(fetchState, 1200);
 /***********************
  * 🚀 INIT
  ***********************/
+loadVersion();
 fetchState();
 
 </script>

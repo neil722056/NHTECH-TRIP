@@ -2,52 +2,17 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>CRM SaaS 安裝</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>CRM SaaS v8</title>
 </head>
 
-<body>
+<body style="font-family:Arial; text-align:center; padding:60px;">
 
-<div class="card">
+  <h1>🚀 CRM SaaS v8</h1>
+  <p>System loading...</p>
 
-  <h2>🚀 CRM SaaS 安裝</h2>
-
-  <input id="line" placeholder="LINE TOKEN">
-  <input id="liff" placeholder="LIFF ID">
-
-  <button onclick="install()">一鍵安裝</button>
-
-  <div id="log"></div>
-
-</div>
-
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-
-<script>
-async function install() {
-
-  log("🚀 start install");
-
-  const res = await api.install({
-    line: document.getElementById("line").value,
-    liff: document.getElementById("liff").value
-  });
-
-  if (!res.ok) {
-    log("❌ " + res.error);
-    return;
-  }
-
-  log("✅ success");
-
-  window.location.href = "dashboard.html?tenant=" + res.sheetId;
-}
-
-function log(msg){
-  document.getElementById("log").innerHTML += msg + "<br>";
-}
-</script>
+  <button onclick="location.href='setup.html'">
+    Start Installation
+  </button>
 
 </body>
 </html>

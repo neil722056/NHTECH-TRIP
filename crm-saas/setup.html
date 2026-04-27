@@ -80,39 +80,66 @@ function setProgress(p) {
   document.getElementById("bar").style.width = p + "%";
 }
 
+let ssId = null;
 async function install() {
 
   log("🚀 開始安裝...");
   setProgress(10);
 
   // =====================
-  // STEP 1: create
+  // STEP 1
   // =====================
+  log("📡 STEP 1: create");
+
   let res = await fetch(GAS_URL + "?path=install&step=create");
   let data = await res.json();
 
+  console.log("DEBUG:", data);
+
+  if (data.status === "error") {
+    log("❌ Error: " + data.message);
+    return;
+  }
+
+  ssId = data.ssId;
   setProgress(data.progress);
-  log("📦 建立 Sheet...");
-
-  const ssId = data.ssId;
+  log("✔ " + data.log);
 
   // =====================
-  // STEP 2: tables
+  // STEP 2
   // =====================
+  log("📡 STEP 2: tables");
+
   res = await fetch(GAS_URL + `?path=install&step=tables&ssId=${ssId}`);
   data = await res.json();
 
+  console.log("DEBUG:", data);
+
+  if (data.status === "error") {
+    log("❌ Error: " + data.message);
+    return;
+  }
+
   setProgress(data.progress);
-  log("🗂 建立資料表...");
+  log("✔ " + data.log);
 
   // =====================
-  // STEP 3: properties
+  // STEP 3
   // =====================
+  log("📡 STEP 3: properties");
+
   res = await fetch(GAS_URL + `?path=install&step=properties&ssId=${ssId}`);
   data = await res.json();
 
+  console.log("DEBUG:", data);
+
+  if (data.status === "error") {
+    log("❌ Error: " + data.message);
+    return;
+  }
+
   setProgress(data.progress);
-  log("🔐 設定系統...");
+  log("✔ " + data.log);
 
   // =====================
   // DONE
@@ -121,8 +148,7 @@ async function install() {
   log("✅ 安裝完成");
 
   window.location.href = data.ssUrl;
-}
-</script>
+}</script>
 
 </body>
 </html>

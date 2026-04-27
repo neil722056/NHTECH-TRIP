@@ -64,8 +64,9 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /***********************
- * 🧠 LIFECYCLE FLAGS
+ * 🧠 STATE FLAGS
  ***********************/
+let installing = false;
 let isReinstall = false;
 
 /***********************
@@ -133,32 +134,49 @@ async function fetchState() {
 
   render(state);
 
-  /***********************
-   * 🚀 AUTO BOOTSTRAP
-   ***********************/
+  /**************************************************
+   * 🚀 SAFE AUTO BOOTSTRAP (FIXED LOOP PROBLEM)
+   **************************************************/
   if (
-    state.status === "IDLE" ||
-    state.step === "0"
+    !installing &&
+    (state.status === "IDLE" && state.step === "0")
   ) {
     startInstall();
   }
 
-  /***********************
-   * 🚀 SAFE REDIRECT
-   ***********************/
-  if (state.status === "DONE" && !isReinstall) {
+  /**************************************************
+   * 🚀 SAFE REDIRECT (NO REINSTALL LOOP)
+   **************************************************/
+  if (
+    state.status === "DONE" &&
+    !isReinstall
+  ) {
     window.location.href = "dashboard.html";
   }
 }
 
 /***********************
- * 🚀 INSTALL TRIGGER
+ * 🚀 INSTALL TRIGGER (LOCKED)
  ***********************/
 async function startInstall() {
+
+  if (installing) return;
+
+  installing = true;
 
   document.getElementById("status").innerText = "Installing...";
 
   await fetch(GAS_URL + "?action=install&t=" + Date.now());
+}
+
+/***********************
+ * 🚨 REINSTALL DETECT
+ ***********************/
+const params = new URLSearchParams(window.location.search);
+
+if (params.get("reinstall") === "1") {
+  isReinstall = true;
+  installing = false;
 }
 
 /***********************
@@ -175,16 +193,8 @@ async function loadVersion() {
       "CRM Setup (" + data.version + " Visual Engine)";
 
   } catch (e) {
-    console.log("version load failed");
+    console.log("version failed");
   }
-}
-
-/***********************
- * 🧨 REINSTALL DETECT
- ***********************/
-const params = new URLSearchParams(window.location.search);
-if (params.get("reinstall") === "1") {
-  isReinstall = true;
 }
 
 /***********************

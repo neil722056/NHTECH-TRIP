@@ -1,72 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CRM Boot</title>
+</head>
+
+<body>
+<h3>🚀 Booting system...</h3>
+
 <script>
 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
-// =========================
-// ROUTER PRO ENGINE
-// =========================
-async function smartRoute(retry = 0) {
-
-  console.log("🧭 Router Pro start, retry:", retry);
+async function boot() {
 
   try {
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(GAS_URL + "?action=state");
+    const data = await res.json();
 
-    const res = await fetch(GAS_URL + "?path=state", {
-      signal: controller.signal
-    });
+    const state = data.state;
 
-    clearTimeout(timeout);
+    console.log("STATE:", state);
 
-    const state = await res.json();
+    /***********************
+     * 🧠 STATE ROUTING
+     ***********************/
+    if (state.status === "DONE") {
 
-    console.log("📦 STATE:", state);
-
-    // =========================
-    // ROUTE LOGIC CORE
-    // =========================
-    if (state.installed === true) {
-
-      console.log("➡️ route: dashboard");
       window.location.href = "dashboard.html";
       return;
+    }
 
-    } else {
+    if (state.status === "IDLE" || !state.status) {
 
-      console.log("➡️ route: setup");
       window.location.href = "setup.html";
       return;
     }
 
-  } catch (err) {
+    if (state.status === "RUNNING") {
 
-    console.warn("⚠️ router error:", err.message);
-
-    // =========================
-    // AUTO RETRY (最多2次)
-    // =========================
-    if (retry < 2) {
-
-      console.log("🔁 retry routing...");
-      setTimeout(() => smartRoute(retry + 1), 1000);
+      // install running → stay in dashboard mode
+      window.location.href = "dashboard.html";
       return;
     }
 
-    // =========================
-    // FALLBACK SAFE MODE
-    // =========================
-    console.log("🧯 fallback → setup");
+    if (state.status === "ERROR") {
+
+      alert("System error detected, redirecting to setup");
+      window.location.href = "setup.html";
+      return;
+    }
+
+    // fallback
+    window.location.href = "dashboard.html";
+
+  } catch (err) {
+
+    console.error("BOOT FAIL:", err);
+
+    // fallback safe mode
     window.location.href = "setup.html";
   }
 }
 
-// =========================
-// BOOT
-// =========================
-document.addEventListener("DOMContentLoaded", () => {
-  smartRoute();
-});
+boot();
 
 </script>
+</body>
+</html>

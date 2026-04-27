@@ -2,29 +2,96 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>v8 CRM Loader</title>
+  <title>v8 CRM Boot</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    .box {
+      text-align: center;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      width: 300px;
+    }
+
+    .dot::after {
+      content: '';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+      0% { content: ''; }
+      33% { content: '.'; }
+      66% { content: '..'; }
+      100% { content: '...'; }
+    }
+  </style>
 </head>
+
 <body>
 
-<h3>Loading CRM System...</h3>
+<div class="box">
+  <h3>🚀 CRM System</h3>
+  <p id="status">Loading<span class="dot"></span></p>
+</div>
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbymF5s_0BVe8_kqhsGJXAnY9icWcPSgYeDVylA8g_0O0CKQXTFC_yxYmTtQTVQTYqLd/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbymF5s_0BVe8_kqhsGJXAnY9icWcPSgYeDVylA8g_0O0CKQXTFC_yxYmTtQTVQTYqLd/exec"; // 🔥 一定要換
 
 async function boot() {
 
-  const res = await fetch(GAS_URL + "?path=state");
-  const state = await res.json();
+  try {
 
-  console.log(state);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
-  if (state.installed) {
-    // 🟢 已安裝 → dashboard
-    window.location.href = "dashboard.html";
-  } else {
-    // 🔴 未安裝 → setup
-    window.location.href = "setup.html";
+    const res = await fetch(GAS_URL + "?path=state", {
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      throw new Error("HTTP error: " + res.status);
+    }
+
+    const state = await res.json();
+
+    console.log("STATE:", state);
+
+    document.getElementById("status").innerText =
+      "System detected: " + (state.installed ? "INSTALLED" : "NOT INSTALLED");
+
+    setTimeout(() => {
+
+      if (state.installed) {
+        window.location.href = "dashboard.html";
+      } else {
+        window.location.href = "setup.html";
+      }
+
+    }, 800);
+
+  } catch (err) {
+
+    console.error(err);
+
+    document.getElementById("status").innerHTML =
+      "❌ Connection failed<br><small>" + err.message + "</small>";
+
+    // fallback：避免卡死
+    setTimeout(() => {
+      window.location.href = "setup.html";
+    }, 3000);
   }
 }
 

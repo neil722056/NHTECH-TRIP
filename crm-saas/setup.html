@@ -26,6 +26,12 @@
     .running { color: #fbbf24; }
     .done { color: #22c55e; }
     .idle { color: #6b7280; }
+
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -38,6 +44,8 @@
   <div>Status: <span data-bind-status>-</span></div>
   <div>Message: <span data-bind-msg>-</span></div>
   <div>CRM ID: <span id="crmId">-</span></div>
+
+  <button onclick="startInstall()">🚀 Start Install</button>
 </div>
 
 <div class="box">
@@ -50,47 +58,38 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 /**************************************************
- * 🚀 STATE LOOP (CONTROL PLANE ONLY)
+ * 🚀 STATE LOOP
  **************************************************/
 setInterval(fetchState, 1200);
 fetchState();
 
 async function fetchState() {
 
-  const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
-  const data = await res.json();
-  const s = data.state || {};
+  try {
 
-  /**************************************************
-   * 🧠 UI SYNC RULE
-   **************************************************/
-  bindUI(s);
+    const res = await fetch(GAS_URL + "?action=state&t=" + Date.now());
+    const data = await res.json();
+    const s = data.state || {};
 
-  document.getElementById("title").innerText =
-    "CRM Setup (" + (s.version || "-") + ")";
+    bindUI(s);
 
-  document.getElementById("crmId").innerText =
-    s.crmId || "-";
+    document.getElementById("title").innerText =
+      "CRM Setup (" + (s.version || "-") + ")";
 
-  renderSteps(s);
+    document.getElementById("crmId").innerText =
+      s.crmId || "-";
 
-  /**************************************************
-   * 🔍 UI DRIFT DETECTOR
-   **************************************************/
-  detectUIDrift(s);
+    renderSteps(s);
 
-  /**************************************************
-   * 🚀 AUTO REDIRECT
-   **************************************************/
-  if (s.status === "DONE") {
-    setTimeout(() => {
-      window.location.href = "dashboard.html";
-    }, 800);
+    detectUIDrift(s);
+
+  } catch (e) {
+    console.warn("state fetch error", e);
   }
 }
 
 /**************************************************
- * 🧠 UI SYNC RULE (v8.4.1 CORE)
+ * 🧠 UI SYNC RULE
  **************************************************/
 function bindUI(state) {
 
@@ -105,7 +104,7 @@ function bindUI(state) {
 }
 
 /**************************************************
- * 📊 INSTALL FLOW RENDER
+ * 📊 STEP RENDER
  **************************************************/
 function renderSteps(s) {
 
@@ -138,6 +137,23 @@ function renderSteps(s) {
 }
 
 /**************************************************
+ * 🚀 INSTALL TRIGGER (🔥 FIXED KEY MISSING PIECE)
+ **************************************************/
+async function startInstall() {
+
+  try {
+
+    const res = await fetch(GAS_URL + "?action=install");
+    const data = await res.json();
+
+    console.log("install started", data);
+
+  } catch (e) {
+    console.error("install failed", e);
+  }
+}
+
+/**************************************************
  * 🔍 UI DRIFT DETECTOR
  **************************************************/
 function detectUIDrift(state) {
@@ -146,7 +162,6 @@ function detectUIDrift(state) {
     document.querySelector("[data-bind-version]")?.innerText || "";
 
   if (uiVersion && !uiVersion.includes(state.version)) {
-
     console.warn("⚠ UI DRIFT DETECTED", {
       ui: uiVersion,
       backend: state.version

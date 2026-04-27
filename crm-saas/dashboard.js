@@ -1,23 +1,21 @@
+
+const GAS_URL = "https://script.google.com/macros/s/AKfycbymF5s_0BVe8_kqhsGJXAnY9icWcPSgYeDVylA8g_0O0CKQXTFC_yxYmTtQTVQTYqLd/exec";
+
+async function loadStatus() {
+  const res = await fetch(GAS_URL + "?path=state");
+  const data = await res.json();
+
+  document.getElementById("crmId").innerText = data.crmId;
+  document.getElementById("crmUrl").href = data.crmUrl;
+}
+
 async function restartInstall() {
 
-  try {
+  await fetch(GAS_URL + "?path=reset");
 
-    document.getElementById("log").innerHTML = "♻️ resetting...";
-
-    await fetch(GAS_URL + "?path=reset");
-
-    document.getElementById("log").innerHTML += "<br>✔ reset done";
-
-    // 🔥 重要：直接跳 setup
-    setTimeout(() => {
-      window.location.href = "setup.html";
-    }, 800);
-
-  } catch (err) {
-
-    console.error(err);
-
-    document.getElementById("log").innerHTML =
-      "❌ reinstall failed: " + err.message;
-  }
+  setTimeout(() => {
+    window.location.href = "setup.html";
+  }, 800);
 }
+
+window.onload = loadStatus;

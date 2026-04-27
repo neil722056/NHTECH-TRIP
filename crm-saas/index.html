@@ -54,10 +54,10 @@
 
 <script>
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec"; // 🔥 一定要改
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxS1JueOIcz4DdwJHxiA-9GqMhY4Z1cWyOBSrv5tIoF3kEnR9sqEEd1PrNsTDyLBuUb/exec";
 
 // =========================
-// BOOT FUNCTION
+// BOOT
 // =========================
 async function boot() {
 
@@ -68,29 +68,14 @@ async function boot() {
 
     debug.innerText = "calling GAS...";
 
-    // ⏱ timeout 防卡死
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-
-    const res = await fetch(GAS_URL + "?path=state", {
-      signal: controller.signal
-    });
-
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      throw new Error("HTTP " + res.status);
-    }
-
+    const res = await fetch(GAS_URL + "?path=state");
     const state = await res.json();
 
     console.log("STATE:", state);
 
-    debug.innerText = "state received";
+    debug.innerText = "state loaded";
 
-    status.innerText =
-      state.installed ? "System: INSTALLED" : "System: NOT INSTALLED";
-
+    // 🔥 自動跳轉
     setTimeout(() => {
 
       if (state.installed) {
@@ -99,26 +84,20 @@ async function boot() {
         window.location.href = "setup.html";
       }
 
-    }, 600);
+    }, 500);
 
   } catch (err) {
 
-    console.error(err);
-
-    status.innerHTML = "❌ Connection Failed";
-
+    status.innerText = "❌ Failed";
     debug.innerText = err.message;
 
-    // 🟢 fallback（避免死在 loading）
     setTimeout(() => {
       window.location.href = "setup.html";
-    }, 2500);
+    }, 2000);
   }
 }
 
-// =========================
-// START
-// =========================
+// 啟動
 boot();
 
 </script>
